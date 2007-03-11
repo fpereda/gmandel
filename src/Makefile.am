@@ -1,0 +1,12 @@
+CLEANFILES = *~
+MAINTAINERCLEANFILES = Makefile.in
+
+INCLUDES = $(PACKAGE_CFLAGS)
+AM_CFLAGS = $(GMANDEL_CFLAGS)
+
+SUBDIRS = .
+
+bin_PROGRAMS = gmandel
+
+gmandel_SOURCES = gmandel.c
+gmandel_LDADD = $(PACKAGE_LIBS)
