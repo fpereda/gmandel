@@ -59,7 +59,6 @@ CHECK_CFLAG([-Winline])
 CHECK_CFLAG([-Wunused-function])
 # CHECK_CFLAG([-Wunreachable-code])
 CHECK_CFLAG([-Wshadow])
-CHECK_CFLAG([-std=c99])
 AC_MSG_RESULT([${cflags_message}])
 AC_SUBST([GMANDEL_CFLAGS])
 dnl }}}
