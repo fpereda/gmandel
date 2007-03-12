@@ -31,16 +31,21 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
+#include "color.h"
+
 static const double width = 900;
 static const double height = 600;
 
-static inline unsigned mandel_it(long double xc, long double yc)
+static inline unsigned mandel_it(
+		long double xc, long double yc,
+		long double *xl, long double *yl)
 {
-	static const unsigned maxit = 10000;
+	static const unsigned maxit = 500;
 	unsigned it = 0;
 
 	long double x;
@@ -63,47 +68,23 @@ static inline unsigned mandel_it(long double xc, long double yc)
 		y2 = y * y;
 	}
 
+	if (xl)
+		*xl = x;
+	if (yl)
+		*yl = y;
+
 	if (it < maxit)
 		return it;
 	else
 		return 0;
 }
 
-void draw_mandel(GdkPixmap *pixmap)
+void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 {
 	GdkGC *black = gdk_gc_new(pixmap);
 
 	GdkColor other_color;
 	GdkGC *other_gc = gdk_gc_new(pixmap);
-
-	/* Painting algorithm */
-	double ulx = -2.1;
-	double uly = 1.1;
-	double lly = -1.1;
-#if 0
-	/* Biggest replica */
-	ulx = -1.81;
-	uly = 0.025;
-	lly = -uly;
-#endif
-#if 0
-	/* Seahorse valley */
-	ulx = -1.38;
-	uly = 0.015;
-	lly = 0.008;
-#endif
-#if 0
-	/* Rotated small replica */
-	ulx = -0.179;
-	uly = 1.046;
-	lly = 1.024;
-#endif
-#if 1
-	/* Really small replica */
-	ulx = -1.744484;
-	uly = -0.022004;
-	lly = -0.022044;
-#endif
 
 	double inc = (uly - lly) / (height - 1);
 
@@ -116,52 +97,18 @@ void draw_mandel(GdkPixmap *pixmap)
 	for (i = 0; i < width; i++) {
 		y = uly;
 		for (j = 0; j < height; j++) {
-			unsigned color = mandel_it(x, y);
+			long double lx;
+			long double ly;
+			unsigned color = mandel_it(x, y, &lx, &ly);
 			if (color == 0)
 				gdk_draw_point(pixmap, black, i, j);
 			else {
-#if 1
-				/* blueish */
-				other_color.blue = color * 1500;
-				other_color.green = color * 800;
-				other_color.red = color * 150;
-#endif
-#if 0
-				/* greenish */
-				other_color.green = color * 1500;
-				other_color.blue = color * 800;
-				other_color.red = color * 150;
-#endif
-#if 0
-				/* fireish */
-				other_color.red = color * 1600;
-				other_color.green = color * 100;
-				other_color.blue = color * 10;
-#endif
-#if 0
-				/* greyish */
-				other_color.red = color * 2000;
-				other_color.green = color * 2000;
-				other_color.blue = color * 2000;
-#endif
-#if 0
-				/* yellowish */
-				other_color.red = color * 2000;
-				other_color.green = color * 2000;
-				other_color.blue = color * 100;
-#endif
-#if 0
-				/* purplish */
-				other_color.red = color * 2000;
-				other_color.green = color * 100;
-				other_color.blue = color * 2000;
-#endif
-#if 0
-				/* brownish / orangish */
-				other_color.red = color * 2000;
-				other_color.green = color * 800;
-				other_color.blue = color * 300;
-#endif
+				double mu = color + 1
+					- log(log(sqrt(lx * lx + ly * ly)))/log(2);
+				mu *= 50;
+				other_color.blue = mu * color_ratio.blue;
+				other_color.green = mu * color_ratio.green;
+				other_color.red = mu * color_ratio.red;
 				gdk_gc_set_rgb_fg_color(other_gc, &other_color);
 				gdk_draw_point(pixmap, other_gc, i, j);
 			}
@@ -184,7 +131,36 @@ gboolean handle_expose(
 
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window, width, height, -1);
-		draw_mandel(pixmap);
+
+		/* Painting algorithm */
+		double ulx = -2.1;
+		double uly = 1.1;
+		double lly = -1.1;
+#if 0
+		/* Biggest replica */
+		ulx = -1.81;
+		uly = 0.025;
+		lly = -uly;
+#endif
+#if 0
+		/* Seahorse valley */
+		ulx = -1.38;
+		uly = 0.015;
+		lly = 0.008;
+#endif
+#if 0
+		/* Rotated small replica */
+		ulx = -0.179;
+		uly = 1.046;
+		lly = 1.024;
+#endif
+#if 0
+		/* Really small replica */
+		ulx = -1.744484;
+		uly = -0.022004;
+		lly = -0.022044;
+#endif
+		draw_mandel(pixmap, ulx, uly, lly);
 		gc = gdk_gc_new(pixmap);
 	}
 
@@ -217,7 +193,8 @@ int main(int argc, char *argv[])
 	gtk_init(&argc, &argv);
 
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(window), "lsys");
+	gtk_window_set_title(GTK_WINDOW(window),
+			"Mandelbrot Set generator by Fernando J. Pereda");
 	gtk_widget_set_size_request(window, width, height);
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	g_signal_connect(window, "destroy",

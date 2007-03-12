@@ -8,5 +8,5 @@ SUBDIRS = .
 
 bin_PROGRAMS = gmandel
 
-gmandel_SOURCES = gmandel.c
-gmandel_LDADD = $(PACKAGE_LIBS)
+gmandel_SOURCES = color.h gmandel.c
+gmandel_LDADD = $(PACKAGE_LIBS) -lm
