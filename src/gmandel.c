@@ -121,10 +121,7 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 	fprintf(stderr, "Finished computing the mandelbrot set!\n");
 }
 
-gboolean handle_expose(
-		GtkWidget *widget,
-		GdkEventExpose *event,
-		gpointer data)
+void repaint_mandel(GtkWidget *widget)
 {
 	static GdkPixmap *pixmap = NULL;
 	static GdkGC *gc = NULL;
@@ -168,7 +165,14 @@ gboolean handle_expose(
 			gc,
 			pixmap,
 			0, 0, 0, 0, -1, -1);
+}
 
+gboolean handle_expose(
+		GtkWidget *widget,
+		GdkEventExpose *event,
+		gpointer data)
+{
+	repaint_mandel(widget);
 	return FALSE;
 }
 
