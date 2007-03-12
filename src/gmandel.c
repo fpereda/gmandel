@@ -42,7 +42,7 @@ static const double width = 900;
 static const double height = 600;
 
 static inline unsigned mandel_it(
-		long double xc, long double yc,
+		long double *xc, long double *yc,
 		long double *xl, long double *yl)
 {
 	static const unsigned maxit = 500;
@@ -55,8 +55,8 @@ static inline unsigned mandel_it(
 	long double x2;
 	long double y2;
 
-	x = x0 = xc;
-	y = y0 = yc;
+	x = x0 = *xc;
+	y = y0 = *yc;
 
 	x2 = x * x;
 	y2 = y * y;
@@ -99,7 +99,7 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 		for (j = 0; j < height; j++) {
 			long double lx;
 			long double ly;
-			unsigned color = mandel_it(x, y, &lx, &ly);
+			unsigned color = mandel_it(&x, &y, &lx, &ly);
 			if (color == 0)
 				gdk_draw_point(pixmap, black, i, j);
 			else {
