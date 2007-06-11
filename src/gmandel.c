@@ -40,7 +40,7 @@
 
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
 
-static const double width = 1000;
+static const double width = 900;
 static const double height = 600;
 static const unsigned maxit = 1000;
 
@@ -52,9 +52,9 @@ static GdkPixmap *gpixmap = NULL;
 
 static unsigned depth = 1;
 
-static inline unsigned mandel_it(
+static unsigned mandel_it(
 		long double *xc, long double *yc,
-		long double *xl, long double *yl)
+		long double *modulus)
 {
 	unsigned it = 1;
 
@@ -71,7 +71,7 @@ static inline unsigned mandel_it(
 	x2 = x * x;
 	y2 = y * y;
 
-	while ((x2 + y2) < 20 && it++ < maxit) {
+	while ((x2 + y2) < 4 && it++ < maxit) {
 		y = 2 * x * y + y0;
 		x = x2 - y2 + x0;
 		x2 = x * x;
@@ -91,15 +91,13 @@ static inline unsigned mandel_it(
 		y2 = y * y;
 	}
 
-	if (xl)
-		*xl = x;
-	if (yl)
-		*yl = y;
-
-	if (it < maxit)
-		return it;
-	else
+	if (it >= maxit || it == 0)
 		return 0;
+
+	if (modulus)
+		*modulus = sqrtl(x2 + y2);
+
+	return it;
 }
 
 void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
@@ -126,16 +124,14 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 	for (i = 0; i < width; i++) {
 		y = uly;
 		for (j = 0; j < height; j++) {
-			long double lx;
-			long double ly;
-			unsigned it = mandel_it(&x, &y, &lx, &ly);
+			long double modulus;
+			unsigned it = mandel_it(&x, &y, &modulus);
 
 			/*
 			 * Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
 			 */
 			if (it > 0) {
-				long double modulus = sqrtl(lx * lx + ly * ly);
 				long double mu = it - logl(fabsl(logl(modulus)));
 				mu /= log(2.0);
 				temp[i][j] = mu;
@@ -172,21 +168,9 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 
 			static const guint16 cmax = ~0;
 
-			if (red > cmax) {
-				red = cmax;
-				blue += cmax - red;
-				green += cmax - red;
-			}
-			if (blue > cmax) {
-				blue = cmax;
-				red += cmax - blue;
-				green += cmax - blue;
-			}
-			if (green > cmax) {
-				green = cmax;
-				red += cmax - green;
-				blue += cmax - green;
-			}
+			red = red > cmax ? cmax : red;
+			blue = blue > cmax ? cmax : blue;
+			green = green > cmax ? cmax : green;
 
 			GdkColor color;
 			color.red = red;
@@ -265,8 +249,6 @@ gboolean handle_click(
 		GdkEventButton *event,
 		gpointer data)
 {
-	fprintf(stderr, "CLICK ! x = %g | y = %g\n", event->x, event->y);
-
 	double inc_y = guly - glly;
 	double inc = inc_y / (height - 1);
 	double inc_x = width * inc;
@@ -285,6 +267,7 @@ gboolean handle_click(
 		glly = y - inc_y/2;
 		gulx = x - inc_x/2;
 	} else {
+		/* TODO: Implement a stack of 'explorer states' */
 		fprintf(stderr, "Come back later, thanks\n");
 		return FALSE;
 	}
