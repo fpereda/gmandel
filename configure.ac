@@ -30,6 +30,7 @@ AC_SUBST([GITREV])
 dnl }}}
 
 dnl {{{ Sane CFLAGS
+GMANDEL_CFLAGS="-std=c99"
 AC_DEFUN([CHECK_CFLAG], [
                   save_CFLAGS=$CFLAGS
                   CFLAGS="$CFLAGS $GMANDEL_CFLAGS $1 -Werror"
