@@ -30,9 +30,9 @@
  */
 
 #if 1 /* test */
-#   define COLOR_RATIO_BLUE  (50)
-#   define COLOR_RATIO_GREEN (8)
-#   define COLOR_RATIO_RED   (0)
+#   define COLOR_RATIO_BLUE  (0.1)
+#   define COLOR_RATIO_GREEN (1)
+#   define COLOR_RATIO_RED   (0.3)
 #endif
 #if 0 /* blueish */
 #   define COLOR_RATIO_BLUE  (1500)
@@ -71,9 +71,9 @@
 #endif
 
 static struct color_ratios_ {
-	unsigned red;
-	unsigned blue;
-	unsigned green;
+	float red;
+	float blue;
+	float green;
 } color_ratio = {
 	.red = COLOR_RATIO_RED,
 	.blue = COLOR_RATIO_BLUE,
