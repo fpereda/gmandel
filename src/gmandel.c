@@ -38,15 +38,25 @@
 
 #include "color.h"
 
-static const double width = 900;
+#define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
+
+static const double width = 1000;
 static const double height = 600;
+static const unsigned maxit = 1000;
+
+static double gulx = 0;
+static double guly = 0;
+static double glly = 0;
+
+static GdkPixmap *gpixmap = NULL;
+
+static unsigned depth = 1;
 
 static inline unsigned mandel_it(
 		long double *xc, long double *yc,
 		long double *xl, long double *yl)
 {
-	static const unsigned maxit = 500;
-	unsigned it = 0;
+	unsigned it = 1;
 
 	long double x;
 	long double y;
@@ -61,7 +71,20 @@ static inline unsigned mandel_it(
 	x2 = x * x;
 	y2 = y * y;
 
-	while ((x2 + y2 < 4) && it++ < maxit) {
+	while ((x2 + y2) < 20 && it++ < maxit) {
+		y = 2 * x * y + y0;
+		x = x2 - y2 + x0;
+		x2 = x * x;
+		y2 = y * y;
+	}
+
+	/*
+	 * When using the renormalized formula for the escape radius,
+	 * a couple of additional iterations help reducing the size
+	 * of the error term.
+	 */
+	unsigned n = 2;
+	while (n--) {
 		y = 2 * x * y + y0;
 		x = x2 - y2 + x0;
 		x2 = x * x;
@@ -81,9 +104,15 @@ static inline unsigned mandel_it(
 
 void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 {
-	GdkGC *black = gdk_gc_new(pixmap);
+	static long double **temp = NULL;
 
-	GdkColor other_color;
+	if (temp == NULL) {
+		temp = malloc(width * sizeof(*temp));
+		unsigned i;
+		for (i = 0; i < width; i++)
+			temp[i] = malloc(height * sizeof(**temp));
+	}
+
 	GdkGC *other_gc = gdk_gc_new(pixmap);
 
 	double inc = (uly - lly) / (height - 1);
@@ -99,71 +128,126 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 		for (j = 0; j < height; j++) {
 			long double lx;
 			long double ly;
-			unsigned color = mandel_it(&x, &y, &lx, &ly);
-			if (color == 0)
-				gdk_draw_point(pixmap, black, i, j);
-			else {
-				double mu = color + 1
-					- log(log(sqrt(lx * lx + ly * ly)))/log(2);
-				mu *= 50;
-				other_color.blue = mu * color_ratio.blue;
-				other_color.green = mu * color_ratio.green;
-				other_color.red = mu * color_ratio.red;
-				gdk_gc_set_rgb_fg_color(other_gc, &other_color);
-				gdk_draw_point(pixmap, other_gc, i, j);
-			}
+			unsigned it = mandel_it(&x, &y, &lx, &ly);
+
+			/*
+			 * Renormalized formula for the escape radius.
+			 * Optimize away the case where it == 0
+			 */
+			if (it > 0) {
+				long double modulus = sqrtl(lx * lx + ly * ly);
+				long double mu = it - logl(fabsl(logl(modulus)));
+				mu /= log(2.0);
+				temp[i][j] = mu;
+			} else
+				temp[i][j] = 0L;
+
 			y -= inc;
 		}
 		x += inc;
 	}
-	printf("x = %LF | y = %LF\n", x, y);
 
-	fprintf(stderr, "Finished computing the mandelbrot set!\n");
+	long double avg = 0;
+	unsigned navg = 0;
+	for (i = 0; i < width; i++)
+		for (j = 0; j < height; j++) {
+			if (temp[i][j] == 0)
+				continue;
+			avg += temp[i][j];
+			navg++;
+		}
+	if (navg > 0)
+		avg /= navg;
+	else
+		avg = 1;
+
+	long double avgfactor = 1000 / logl(avg);
+
+	for (i = 0; i < width; i++) {
+		for (j = 0; j < height; j++) {
+			long double factor = roundl(temp[i][j] * avgfactor);
+			guint32 red = color_ratio.red * factor;
+			guint32 blue = color_ratio.blue * factor;
+			guint32 green = color_ratio.green * factor;
+
+			static const guint16 cmax = ~0;
+
+			if (red > cmax) {
+				red = cmax;
+				blue += cmax - red;
+				green += cmax - red;
+			}
+			if (blue > cmax) {
+				blue = cmax;
+				red += cmax - blue;
+				green += cmax - blue;
+			}
+			if (green > cmax) {
+				green = cmax;
+				red += cmax - green;
+				blue += cmax - green;
+			}
+
+			GdkColor color;
+			color.red = red;
+			color.blue = blue;
+			color.green = green;
+
+			gdk_gc_set_rgb_fg_color(other_gc, &color);
+			gdk_draw_point(pixmap, other_gc, i, j);
+		}
+	}
 }
 
 void repaint_mandel(GtkWidget *widget)
 {
-	static GdkPixmap *pixmap = NULL;
 	static GdkGC *gc = NULL;
 
-	if (!pixmap) {
-		pixmap = gdk_pixmap_new(widget->window, width, height, -1);
+	if (!gpixmap) {
+		gpixmap = gdk_pixmap_new(widget->window, width, height, -1);
 
-		/* Painting algorithm */
-		double ulx = -2.1;
-		double uly = 1.1;
-		double lly = -1.1;
+		double *ulx = &gulx;
+		double *uly = &guly;
+		double *lly = &glly;
+
+		if (*ulx == 0 && *uly == 0 && *lly == 0) {
+			/* Painting algorithm */
+			*ulx = -2.1;
+			*uly = 1.1;
+			*lly = -1.1;
 #if 0
-		/* Biggest replica */
-		ulx = -1.81;
-		uly = 0.025;
-		lly = -uly;
+			/* Biggest replica */
+			*ulx = -1.81;
+			*uly = 0.025;
+			*lly = -*uly;
 #endif
 #if 0
-		/* Seahorse valley */
-		ulx = -1.38;
-		uly = 0.015;
-		lly = 0.008;
+			/* Seahorse valley */
+			*ulx = -1.38;
+			*uly = 0.015;
+			*lly = 0.008;
 #endif
 #if 0
-		/* Rotated small replica */
-		ulx = -0.179;
-		uly = 1.046;
-		lly = 1.024;
+			/* Rotated small replica */
+			*ulx = -0.179;
+			*uly = 1.046;
+			*lly = 1.024;
 #endif
 #if 0
-		/* Really small replica */
-		ulx = -1.744484;
-		uly = -0.022004;
-		lly = -0.022044;
+			/* Really small replica */
+			*ulx = -1.744484;
+			*uly = -0.022004;
+			*lly = -0.022044;
 #endif
-		draw_mandel(pixmap, ulx, uly, lly);
-		gc = gdk_gc_new(pixmap);
+		}
+
+		draw_mandel(gpixmap, *ulx, *uly, *lly);
+		gc = gdk_gc_new(gpixmap);
 	}
 
 	gdk_draw_drawable(widget->window,
 			gc,
-			pixmap,
+			gpixmap,
 			0, 0, 0, 0, -1, -1);
 }
 
@@ -181,13 +265,33 @@ gboolean handle_click(
 		GdkEventButton *event,
 		gpointer data)
 {
-	fprintf(stderr, "Click! x = %g | y = %g\n",
-			event->x, event->y);
+	fprintf(stderr, "CLICK ! x = %g | y = %g\n", event->x, event->y);
 
-	// -2+(3x0/900))-i+(2y0/600)i
-	fprintf(stderr, "ulx = %g | uly = %g\n",
-			-2.1 + (3 * event->x / width),
-			1.1 - (2 * event->y / height));
+	double inc_y = guly - glly;
+	double inc = inc_y / (height - 1);
+	double inc_x = width * inc;
+
+	long double x = event->x * inc + gulx;
+	long double y = -(event->y * inc - guly);
+
+	fprintf(stderr, "x = %LF | y = %LF || inc_y = %g | inc_x = %g\n",
+			x, y, inc_y, inc_x);
+
+	if (event->button == 1) {
+		inc_y /= 10;
+		inc_x /= 10;
+
+		guly = y + inc_y/2;
+		glly = y - inc_y/2;
+		gulx = x - inc_x/2;
+	} else {
+		fprintf(stderr, "Come back later, thanks\n");
+		return FALSE;
+	}
+
+	++depth;
+	gpixmap = NULL;
+	repaint_mandel(widget);
 
 	return FALSE;
 }
