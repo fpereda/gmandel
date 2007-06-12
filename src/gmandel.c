@@ -157,11 +157,12 @@ void draw_mandel(GdkPixmap *pixmap, double ulx, double uly, double lly)
 	else
 		avg = 1;
 
-	long double avgfactor = 1000 / logl(avg);
+	long double squarefactor = sqrtl(log10l(avg * sqrtl(expl(avg))));
+	long double avgfactor = 1000 / squarefactor;
 
 	for (i = 0; i < width; i++) {
 		for (j = 0; j < height; j++) {
-			long double factor = roundl(temp[i][j] * avgfactor);
+			long double factor = temp[i][j] * avgfactor;
 			guint32 red = color_ratio.red * factor;
 			guint32 blue = color_ratio.blue * factor;
 			guint32 green = color_ratio.green * factor;
