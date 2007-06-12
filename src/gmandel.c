@@ -280,6 +280,16 @@ gboolean handle_click(
 	return FALSE;
 }
 
+gboolean handle_keypress(
+		GtkWidget *widget,
+		GdkEventKey *event,
+		gpointer data)
+{
+	printf("Pressed '%c'\n", event->keyval);
+
+	return FALSE;
+}
+
 int main(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);
@@ -291,6 +301,10 @@ int main(int argc, char *argv[])
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
+
+	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
+	g_signal_connect(window, "key-press-event",
+			G_CALLBACK(handle_keypress), NULL);
 
 	GtkWidget *drawing_area = gtk_drawing_area_new();
 	g_signal_connect(drawing_area, "expose-event",
