@@ -34,8 +34,7 @@
 
 #include <gtk/gtk.h>
 
-void paint_do_mandel(void);
-void paint_repaint_mandel(GtkWidget *widget);
+void paint_mandel(GtkWidget *widget);
 void paint_force_redraw(GtkWidget *widget);
 
 void paint_set_limits(double ulx, double uly, double lly);

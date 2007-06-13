@@ -93,7 +93,7 @@ void paint_get_limits(double *ulx, double *uly, double *lly)
 void paint_force_redraw(GtkWidget *widget)
 {
 	pixmap = NULL;
-	paint_repaint_mandel(widget);
+	paint_mandel(widget);
 }
 
 static long double do_avgfactor(
@@ -151,7 +151,7 @@ static void plot_points(long double **mu, unsigned width, unsigned height)
 	}
 }
 
-void paint_do_mandel(void)
+static void paint_do_mandel(void)
 {
 	static long double **temp = NULL;
 
@@ -194,7 +194,7 @@ void paint_do_mandel(void)
 	plot_points(temp, width, height);
 }
 
-void paint_repaint_mandel(GtkWidget *widget)
+void paint_mandel(GtkWidget *widget)
 {
 	static GdkGC *gc = NULL;
 
