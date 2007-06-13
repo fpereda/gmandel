@@ -61,6 +61,13 @@ static long double **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
 
+static void clean_mupoint(void)
+{
+	for (unsigned i = 0; i < window_size.width; i++)
+		for (unsigned j = 0; j < window_size.height; j++)
+			mupoint[i][j] = -1;
+}
+
 void paint_set_window_size(unsigned width, unsigned height)
 {
 	window_size.width = width;
@@ -95,6 +102,7 @@ void paint_get_limits(double *ulx, double *uly, double *lly)
 void paint_force_redraw(GtkWidget *widget)
 {
 	pixmap = NULL;
+	clean_mupoint();
 	paint_mandel(widget);
 }
 
@@ -165,6 +173,9 @@ static void paint_do_mandel(void)
 	for (unsigned i = 0; i < width; i++) {
 		y = paint_limits.uly;
 		for (unsigned j = 0; j < height; j++) {
+			if (mupoint[i][j] != -1)
+				continue;
+
 			long double modulus;
 			unsigned it = mandelbrot_it(&x, &y, &modulus);
 
@@ -195,6 +206,7 @@ void paint_mandel(GtkWidget *widget)
 		mupoint = malloc(window_size.width * sizeof(*mupoint));
 		for (unsigned i = 0; i < window_size.width; i++)
 			mupoint[i] = malloc(window_size.height * sizeof(**mupoint));
+		clean_mupoint();
 	}
 
 	if (!pixmap) {
