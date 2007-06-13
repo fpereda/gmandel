@@ -57,6 +57,8 @@ static struct {
 	.height = 600,
 };
 
+static long double **mupoint = NULL;
+
 static GdkPixmap *pixmap = NULL;
 
 void paint_set_window_size(unsigned width, unsigned height)
@@ -96,16 +98,15 @@ void paint_force_redraw(GtkWidget *widget)
 	paint_mandel(widget);
 }
 
-static long double do_avgfactor(
-		long double **mu, unsigned width, unsigned height)
+static long double do_avgfactor(void)
 {
 	long double avg = 0;
 	unsigned navg = 0;
-	for (unsigned i = 0; i < width; i++)
-		for (unsigned j = 0; j < height; j++) {
-			if (mu[i][j] == 0)
+	for (unsigned i = 0; i < window_size.width; i++)
+		for (unsigned j = 0; j < window_size.height; j++) {
+			if (mupoint[i][j] == 0)
 				continue;
-			avg += mu[i][j];
+			avg += mupoint[i][j];
 			navg++;
 		}
 	if (navg > 0)
@@ -119,17 +120,17 @@ static long double do_avgfactor(
 	return avgfactor;
 }
 
-static void plot_points(long double **mu, unsigned width, unsigned height)
+static void plot_points(void)
 {
 	static GdkGC *gc = NULL;
 
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
 
-	long double avgfactor = do_avgfactor(mu, width, height);
-	for (unsigned i = 0; i < width; i++) {
-		for (unsigned j = 0; j < height; j++) {
-			long double factor = mu[i][j] * avgfactor;
+	long double avgfactor = do_avgfactor();
+	for (unsigned i = 0; i < window_size.width; i++) {
+		for (unsigned j = 0; j < window_size.height; j++) {
+			long double factor = mupoint[i][j] * avgfactor;
 			guint32 red = color_ratio.red * factor;
 			guint32 blue = color_ratio.blue * factor;
 			guint32 green = color_ratio.green * factor;
@@ -153,14 +154,6 @@ static void plot_points(long double **mu, unsigned width, unsigned height)
 
 static void paint_do_mandel(void)
 {
-	static long double **temp = NULL;
-
-	if (temp == NULL) {
-		temp = malloc(window_size.width * sizeof(*temp));
-		for (unsigned i = 0; i < window_size.width; i++)
-			temp[i] = malloc(window_size.height * sizeof(**temp));
-	}
-
 	unsigned width = window_size.width;
 	unsigned height = window_size.height;
 	double inc = (paint_limits.uly - paint_limits.lly) / (height - 1);
@@ -182,21 +175,27 @@ static void paint_do_mandel(void)
 			if (it > 0) {
 				long double mu = it - logl(fabsl(logl(modulus)));
 				mu /= log(2.0);
-				temp[i][j] = mu;
+				mupoint[i][j] = mu;
 			} else
-				temp[i][j] = 0L;
+				mupoint[i][j] = 0L;
 
 			y -= inc;
 		}
 		x += inc;
 	}
 
-	plot_points(temp, width, height);
+	plot_points();
 }
 
 void paint_mandel(GtkWidget *widget)
 {
 	static GdkGC *gc = NULL;
+
+	if (!mupoint) {
+		mupoint = malloc(window_size.width * sizeof(*mupoint));
+		for (unsigned i = 0; i < window_size.width; i++)
+			mupoint[i] = malloc(window_size.height * sizeof(**mupoint));
+	}
 
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window,
