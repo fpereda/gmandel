@@ -93,7 +93,7 @@ gboolean handle_click(
 		return FALSE;
 	}
 
-	paint_force_redraw(widget);
+	paint_force_redraw(widget, 1);
 
 	return FALSE;
 }
@@ -103,8 +103,6 @@ gboolean handle_keypress(
 		GdkEventKey *event,
 		gpointer data)
 {
-	printf("Pressed '%c'\n", event->keyval);
-
 	int nextmaxit = mandelbrot_get_maxit();
 	switch (event->keyval) {
 		case GDK_KP_Add:
@@ -144,7 +142,11 @@ gboolean handle_keypress(
 		case GDK_KP_Left:
 		case GDK_Right:
 		case GDK_KP_Right:
-			paint_force_redraw(drawing_area);
+			printf("Repainting...\n");
+			int clean = (event->keyval == GDK_R
+					|| event->keyval == GDK_r);
+			paint_force_redraw(drawing_area, clean);
+			break;
 	}
 
 

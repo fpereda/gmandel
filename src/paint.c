@@ -97,7 +97,7 @@ static void mupoint_move_down(void)
 static void mupoint_move_right(void)
 {
 	unsigned width = window_size.width;
-	size_t num = (window_size.height - 1) * sizeof(*mupoint);
+	size_t num = (width - 1) * sizeof(*mupoint);
 
 	void *p = mupoint[0];
 	memmove(&mupoint[1], &mupoint[0], num);
@@ -108,7 +108,7 @@ static void mupoint_move_right(void)
 static void mupoint_move_left(void)
 {
 	unsigned width = window_size.width;
-	size_t num = (window_size.height - 1) * sizeof(*mupoint);
+	size_t num = (width - 1) * sizeof(*mupoint);
 
 	void *p = mupoint[width - 1];
 	memmove(&mupoint[0], &mupoint[1], num);
@@ -177,10 +177,11 @@ void paint_get_limits(double *ulx, double *uly, double *lly)
 		*lly = paint_limits.lly;
 }
 
-void paint_force_redraw(GtkWidget *widget)
+void paint_force_redraw(GtkWidget *widget, int clean)
 {
 	pixmap = NULL;
-	clean_mupoint();
+	if (clean)
+		clean_mupoint();
 	paint_mandel(widget);
 }
 
