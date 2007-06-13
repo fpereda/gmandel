@@ -34,6 +34,7 @@
 #include <math.h>
 
 #include <gdk/gdk.h>
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 
 #include "mandelbrot.h"
@@ -104,15 +105,48 @@ gboolean handle_keypress(
 {
 	printf("Pressed '%c'\n", event->keyval);
 
-	char c = event->keyval;
-
 	int nextmaxit = mandelbrot_get_maxit();
-	if (c == '+')
-		nextmaxit += 100;
-	else if (c == '-')
-		nextmaxit -= 100;
-	else if (c == 'r')
-		paint_force_redraw(drawing_area);
+	switch (event->keyval) {
+		case GDK_KP_Add:
+		case GDK_plus:
+			nextmaxit += 100;
+			break;
+		case GDK_KP_Subtract:
+		case GDK_minus:
+			nextmaxit -= 100;
+			break;
+		case GDK_Up:
+		case GDK_KP_Up:
+			paint_move_up();
+			break;
+		case GDK_Down:
+		case GDK_KP_Down:
+			paint_move_down();
+			break;
+		case GDK_Left:
+		case GDK_KP_Left:
+			paint_move_left();
+			break;
+		case GDK_Right:
+		case GDK_KP_Right:
+			paint_move_right();
+			break;
+	}
+
+	switch (event->keyval) {
+		case GDK_R:
+		case GDK_r:
+		case GDK_Up:
+		case GDK_KP_Up:
+		case GDK_Down:
+		case GDK_KP_Down:
+		case GDK_Left:
+		case GDK_KP_Left:
+		case GDK_Right:
+		case GDK_KP_Right:
+			paint_force_redraw(drawing_area);
+	}
+
 
 	if (nextmaxit != mandelbrot_get_maxit()) {
 		mandelbrot_set_maxit(nextmaxit);

@@ -43,4 +43,9 @@ void paint_get_limits(double *ulx, double *uly, double *lly);
 void paint_set_window_size(unsigned width, unsigned height);
 void paint_get_window_size(unsigned *width, unsigned *height);
 
+void paint_move_up(void);
+void paint_move_down(void);
+void paint_move_left(void);
+void paint_move_right(void);
+
 #endif
