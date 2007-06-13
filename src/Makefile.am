@@ -8,5 +8,10 @@ SUBDIRS = .
 
 bin_PROGRAMS = gmandel
 
-gmandel_SOURCES = color.h gmandel.c
+gmandel_SOURCES = gmandel.c \
+                  color.h   \
+                  mandelbrot.c mandelbrot.h \
+                  paint.c paint.h
 gmandel_LDADD = $(PACKAGE_LIBS) -lm
+
+# vim: set et:
