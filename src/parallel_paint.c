@@ -56,15 +56,14 @@ void parallel_paint_do_mu(size_t n, double inc)
 	struct paint_do_mu_args args[N_THREADS];
 
 	unsigned each_n = n / N_THREADS;
-	unsigned last_n = n % N_THREADS;
-	if (last_n == 0)
-		last_n = each_n;
+	unsigned last_n = n - (N_THREADS - 1) * each_n;
 
 	for (unsigned i = 0; i < N_THREADS; i++) {
 		args[i].begin = i * each_n;
 		args[i].n = (i == N_THREADS - 1) ? last_n : each_n;
 		args[i].inc = inc;
-		int ret = pthread_create(&threads[i], NULL, adapt_paint_do_mu, &args[i]);
+		int ret = pthread_create(&threads[i],
+				NULL, adapt_paint_do_mu, &args[i]);
 		if (ret != 0) {
 			fprintf(stderr, "pthread_create failed: '%s'\n", strerror(ret));
 			exit(EXIT_FAILURE);
