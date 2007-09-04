@@ -1,9 +1,21 @@
 dnl vim: set sw=4 sts=4 ts=4 noet ft=config foldmethod=marker foldmarker={{{,}}} :
 dnl Basic setup
-AC_INIT(gmandel, [0.1], ferdy@gentoo.org, gmandel)
 AC_PREREQ(2.59)
+AC_INIT([src/gmandel.c])
 AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE(gmandel, 0.1)
+
+VERSION_MAJOR=0
+VERSION_MINOR=1
+VERSION_MICRO=0
+VERSION_FULL="$VERSION_MAJOR.$VERSION_MINOR.$VERSION_MICRO"
+VERSION="$VERSION_FULL"
+
+AC_SUBST([VERSION_MAJOR])
+AC_SUBST([VERSION_MINOR])
+AC_SUBST([VERSION_MICRO])
+AC_SUBST([VERSION_FULL])
+
+AM_INIT_AUTOMAKE(gmandel, [$VERSION_FULL])
 
 dnl Basic stuff
 AC_PROG_CC
@@ -70,7 +82,23 @@ AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
 dnl }}}
 
+dnl {{{ threads
+AC_MSG_CHECKING([whether to enable threads])
+AC_ARG_ENABLE([threads],
+			  AS_HELP_STRING([--enable-threads], [Enable threads]),
+			  [ENABLE_THREADS=$enableval
+			   AC_MSG_RESULT([$enableval])],
+			  [ENABLE_THREADS=no
+			   AC_MSG_RESULT([no])])
+if test "x$ENABLE_THREADS" = "xyes" ; then
+	AC_CHECK_LIB(pthread, pthread_create)
+fi
+AC_SUBST([ENABLE_THREADS])
+AM_CONDITIONAL([ENABLE_THREADS], test "x$ENABLE_THREADS" = "xyes")
+dnl }}}
+
 dnl Makefile generation
+AC_CONFIG_HEADER(config.h)
 AC_OUTPUT(
 		  Makefile
 		  src/Makefile

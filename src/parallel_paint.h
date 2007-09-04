@@ -29,25 +29,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_PAINT_H_
-#define GMANDEL_PAINT_H_ 1
+#ifndef GMANDEL_PARALLEL_PAINT_H_
+#define GMANDEL_PARALLEL_PAINT_H_ 1
 
-#include <gtk/gtk.h>
+#ifdef ENABLE_THREADS
 
-void paint_mandel(GtkWidget *widget);
-void paint_force_redraw(GtkWidget *widget, int clean);
+#define N_THREADS (5)
 
-void paint_set_limits(double ulx, double uly, double lly);
-void paint_get_limits(double *ulx, double *uly, double *lly);
+void parallel_paint_do_mu(size_t n, double inc);
 
-void paint_set_window_size(unsigned width, unsigned height);
-void paint_get_window_size(unsigned *width, unsigned *height);
+#else
 
-void paint_do_mu(unsigned begin, size_t n, double inc);
+#include "paint.h"
 
-void paint_move_up(void);
-void paint_move_down(void);
-void paint_move_left(void);
-void paint_move_right(void);
+static inline void parallel_paint_do_mu(size_t n, double inc)
+{
+	paint_do_mu(0, n, inc);
+}
+
+#endif
 
 #endif

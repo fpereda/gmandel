@@ -32,7 +32,7 @@ get() {
 run mkdir -p config
 run $(get libtoolize 1.5 ) --copy --force --automake
 rm -f config.cache
-run $(get aclocal 1.9 )
-# run $(get autoheader 2.60 2.59 )
-run $(get autoconf 2.60 2.59 )
-run $(get automake 1.9 ) -a --copy --foreign
+run $(get aclocal 1.10 1.9 )
+run $(get autoheader 2.61 2.60 2.59 )
+run $(get autoconf 2.61 2.60 2.59 )
+run $(get automake 1.10 1.9 ) -a --copy --foreign

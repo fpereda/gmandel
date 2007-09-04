@@ -37,6 +37,7 @@
 #include <gdk/gdk.h>
 
 #include "paint.h"
+#include "parallel_paint.h"
 #include "mandelbrot.h"
 #include "color.h"
 
@@ -239,20 +240,16 @@ static void plot_points(void)
 	}
 }
 
-static void paint_do_mandel(void)
+void paint_do_mu(unsigned begin, size_t n, double inc)
 {
-	unsigned width = window_size.width;
-	unsigned height = window_size.height;
-	double inc = (paint_limits.uly - paint_limits.lly) / (height - 1);
-
 	long double x;
 	long double y;
 
-	x = paint_limits.ulx;
-	for (unsigned i = 0; i < width; i++) {
+	x = paint_limits.ulx + begin * inc;
+	for (unsigned i = 0; i < n; i++) {
 		y = paint_limits.uly;
-		for (unsigned j = 0; j < height; j++) {
-			if (mupoint[i][j] != -1)
+		for (unsigned j = 0; j < window_size.height; j++) {
+			if (mupoint[i + begin][j] != -1)
 				continue;
 
 			long double modulus;
@@ -265,15 +262,21 @@ static void paint_do_mandel(void)
 			if (it > 0) {
 				long double mu = it - logl(fabsl(logl(modulus)));
 				mu /= log(2.0);
-				mupoint[i][j] = mu;
+				mupoint[i + begin][j] = mu;
 			} else
-				mupoint[i][j] = 0L;
+				mupoint[i + begin][j] = 0L;
 
 			y -= inc;
 		}
 		x += inc;
 	}
+}
 
+static void paint_do_mandel(void)
+{
+	unsigned height = window_size.height;
+	double inc = (paint_limits.uly - paint_limits.lly) / (height - 1);
+	parallel_paint_do_mu(window_size.width, inc);
 	plot_points();
 }
 

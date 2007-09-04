@@ -11,7 +11,16 @@ bin_PROGRAMS = gmandel
 gmandel_SOURCES = gmandel.c \
                   color.h   \
                   mandelbrot.c mandelbrot.h \
-                  paint.c paint.h
+                  paint.c paint.h \
+                  parallel_paint.h
 gmandel_LDADD = $(PACKAGE_LIBS) -lm
+
+if ENABLE_THREADS
+
+AM_CFLAGS += -DENABLE_THREADS
+gmandel_SOURCES += parallel_paint.c
+gmandel_LDADD   += -lpthread
+
+endif
 
 # vim: set et:

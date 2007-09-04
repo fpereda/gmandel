@@ -29,25 +29,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_PAINT_H_
-#define GMANDEL_PAINT_H_ 1
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <pthread.h>
 
-#include <gtk/gtk.h>
+#include "parallel_paint.h"
+#include "paint.h"
 
-void paint_mandel(GtkWidget *widget);
-void paint_force_redraw(GtkWidget *widget, int clean);
+struct paint_do_mu_args {
+	unsigned begin;
+	size_t n;
+	double inc;
+};
 
-void paint_set_limits(double ulx, double uly, double lly);
-void paint_get_limits(double *ulx, double *uly, double *lly);
+static void *adapt_paint_do_mu(void *arg)
+{
+	struct paint_do_mu_args *a = arg;
+	paint_do_mu(a->begin, a->n, a->inc);
+	return NULL;
+}
 
-void paint_set_window_size(unsigned width, unsigned height);
-void paint_get_window_size(unsigned *width, unsigned *height);
+void parallel_paint_do_mu(size_t n, double inc)
+{
+	pthread_t threads[N_THREADS];
+	struct paint_do_mu_args args[N_THREADS];
 
-void paint_do_mu(unsigned begin, size_t n, double inc);
+	unsigned each_n = n / N_THREADS;
+	unsigned last_n = n % N_THREADS;
+	if (last_n == 0)
+		last_n = each_n;
 
-void paint_move_up(void);
-void paint_move_down(void);
-void paint_move_left(void);
-void paint_move_right(void);
+	for (unsigned i = 0; i < N_THREADS; i++) {
+		args[i].begin = i * each_n;
+		args[i].n = (i == N_THREADS - 1) ? last_n : each_n;
+		args[i].inc = inc;
+		int ret = pthread_create(&threads[i], NULL, adapt_paint_do_mu, &args[i]);
+		if (ret != 0) {
+			fprintf(stderr, "pthread_create failed: '%s'\n", strerror(ret));
+			exit(EXIT_FAILURE);
+		}
+	}
 
-#endif
+	for (unsigned i = 0; i < N_THREADS; i++)
+		pthread_join(threads[i], NULL);
+}
