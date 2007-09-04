@@ -1,0 +1,15 @@
+*.o
+Makefile.in
+Makefile
+aclocal.m4
+.deps
+autom4te.cache
+config.log
+config.status
+config
+configure
+src/gmandel
+stamp-h1
+*.swp
+config.h
+config.h.in
