@@ -113,6 +113,7 @@ gboolean handle_keypress(
 		case GDK_minus:
 			nextmaxit -= 100;
 			break;
+#if 0
 		case GDK_Up:
 		case GDK_KP_Up:
 			paint_move_up();
@@ -129,11 +130,13 @@ gboolean handle_keypress(
 		case GDK_KP_Right:
 			paint_move_right();
 			break;
+#endif
 	}
 
 	switch (event->keyval) {
 		case GDK_R:
 		case GDK_r:
+#if 0
 		case GDK_Up:
 		case GDK_KP_Up:
 		case GDK_Down:
@@ -142,6 +145,7 @@ gboolean handle_keypress(
 		case GDK_KP_Left:
 		case GDK_Right:
 		case GDK_KP_Right:
+#endif
 			printf("Repainting...\n");
 			int clean = (event->keyval == GDK_R
 					|| event->keyval == GDK_r);
