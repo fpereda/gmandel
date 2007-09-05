@@ -12,7 +12,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the program nor the names of its
+ *     * Neither the name of the library nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
@@ -29,34 +29,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_PAINT_H_
-#define GMANDEL_PAINT_H_ 1
+#ifndef GMANDEL_XFUNCS_H_
+#define GMANDEL_XFUNCS_H_ 1
 
-#include <gtk/gtk.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-struct observer_state {
-	double ulx;
-	double uly;
-	double lly;
-};
+#if defined(__GNUC__)
+#    define __NORETURN __attribute__((noreturn))
+#else
+#    define __NORETURN
+#endif
 
-void paint_mandel(GtkWidget *widget);
-void paint_force_redraw(GtkWidget *widget, int clean);
+#if defined(__GNUC__)
+#    define likely(a)   __builtin_expect((a), 1)
+#    define unlikely(a) __builtin_expect((a), 0)
+#else
+#    define likely(a)   (a)
+#    define unlikely(a) (a)
+#endif
 
-void paint_set_limits(double ulx, double uly, double lly);
-void paint_get_limits(double *ulx, double *uly, double *lly);
+static __NORETURN void oom(void)
+{
+	fprintf(stderr, "Oom. Aborting.\n");
+	abort();
+}
 
-void paint_set_observer_state(struct observer_state *s);
-void paint_get_observer_state(struct observer_state *s);
+static inline void *xmalloc(size_t s)
+{
+	if (s == 0)
+		return NULL;
 
-void paint_set_window_size(unsigned width, unsigned height);
-void paint_get_window_size(unsigned *width, unsigned *height);
+	void *p = malloc(s);
+	if (likely(p != NULL))
+		return p;
 
-void paint_do_mu(unsigned begin, size_t n, double inc);
+	oom();
+}
 
-void paint_move_up(void);
-void paint_move_down(void);
-void paint_move_left(void);
-void paint_move_right(void);
+static inline char *xstrdup(const char *c)
+{
+	char *p = strdup(c);
+	if (likely(p != NULL))
+		return p;
+
+	oom();
+}
 
 #endif

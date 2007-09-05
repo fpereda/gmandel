@@ -12,7 +12,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the program nor the names of its
+ *     * Neither the name of the library nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
@@ -29,34 +29,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_PAINT_H_
-#define GMANDEL_PAINT_H_ 1
+#include "stack.h"
+#include "xfuncs.h"
 
-#include <gtk/gtk.h>
+stack *stack_alloc_init(void (*destroy)(void *))
+{
+	stack *s = xmalloc(sizeof(*s));
+	stack_init(s, destroy);
+	return s;
+}
 
-struct observer_state {
-	double ulx;
-	double uly;
-	double lly;
-};
+void stack_init(stack *s, void (*destroy)(void *))
+{
+	s->first = NULL;
+	s->size = 0;
+	s->destroy = destroy;
+}
 
-void paint_mandel(GtkWidget *widget);
-void paint_force_redraw(GtkWidget *widget, int clean);
+void stack_destroy(stack *s)
+{
+	stacknode *n = s->first;
+	while (n) {
+		stacknode *nn = n->next;
+		if (s->destroy)
+			s->destroy(n->data);
+		free(n);
+		n = nn;
+	}
+	free(s);
+}
 
-void paint_set_limits(double ulx, double uly, double lly);
-void paint_get_limits(double *ulx, double *uly, double *lly);
+void stack_push(stack *s, void *d)
+{
+	stacknode *n = xmalloc(sizeof(*n));
+	n->data = d;
+	n->next = s->first;
+	s->first = n;
+	s->size++;
+}
 
-void paint_set_observer_state(struct observer_state *s);
-void paint_get_observer_state(struct observer_state *s);
-
-void paint_set_window_size(unsigned width, unsigned height);
-void paint_get_window_size(unsigned *width, unsigned *height);
-
-void paint_do_mu(unsigned begin, size_t n, double inc);
-
-void paint_move_up(void);
-void paint_move_down(void);
-void paint_move_left(void);
-void paint_move_right(void);
-
-#endif
+void *stack_pop(stack *s)
+{
+	if (stack_empty(s))
+		return NULL;
+	stacknode *n = s->first;
+	s->first = n->next;
+	s->size--;
+	void *p = n->data;
+	free(n);
+	return p;
+}

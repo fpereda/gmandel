@@ -9,9 +9,10 @@ SUBDIRS = .
 bin_PROGRAMS = gmandel
 
 gmandel_SOURCES = gmandel.c \
-                  color.h   \
+                  color.h xfuncs.h \
                   mandelbrot.c mandelbrot.h \
                   paint.c paint.h \
+                  stack.c stack.h \
                   parallel_paint.h
 gmandel_LDADD = $(PACKAGE_LIBS) -lm
 

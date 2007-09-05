@@ -39,10 +39,13 @@
 
 #include "mandelbrot.h"
 #include "paint.h"
+#include "stack.h"
+#include "xfuncs.h"
 
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
 
 static GtkWidget *drawing_area = NULL;
+static stack *states = NULL;
 
 gboolean handle_expose(
 		GtkWidget *widget,
@@ -58,6 +61,9 @@ gboolean handle_click(
 		GdkEventButton *event,
 		gpointer data)
 {
+	if (states == NULL)
+		states = stack_alloc_init(free);
+
 	double ulx;
 	double uly;
 	double lly;
@@ -80,6 +86,10 @@ gboolean handle_click(
 #endif
 
 	if (event->button == 1) {
+		struct observer_state *cur = xmalloc(sizeof(*cur));
+		paint_get_observer_state(cur);
+		stack_push(states, cur);
+
 		inc_y /= 10;
 		inc_x /= 10;
 
@@ -88,9 +98,10 @@ gboolean handle_click(
 		ulx = x - inc_x/2;
 		paint_set_limits(ulx, uly, lly);
 	} else {
-		/* TODO: Implement a stack of 'explorer states' */
-		fprintf(stderr, "Come back later, thanks\n");
-		return FALSE;
+		if (stack_empty(states))
+			return FALSE;
+		paint_set_observer_state(stack_peek(states));
+		free(stack_pop(states));
 	}
 
 	paint_force_redraw(widget, 1);
@@ -200,6 +211,9 @@ int main(int argc, char *argv[])
 
 	gtk_widget_show_all(window);
 	gtk_main();
+
+	if (states)
+		stack_destroy(states);
 
 	return EXIT_SUCCESS;
 }

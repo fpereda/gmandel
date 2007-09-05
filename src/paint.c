@@ -41,11 +41,7 @@
 #include "mandelbrot.h"
 #include "color.h"
 
-static struct {
-	double ulx;
-	double uly;
-	double lly;
-} paint_limits = {
+static struct observer_state paint_limits = {
 	.ulx = -2.1,
 	.uly = 1.1,
 	.lly = -1.1,
@@ -186,6 +182,16 @@ void paint_get_limits(double *ulx, double *uly, double *lly)
 		*uly = paint_limits.uly;
 	if (lly)
 		*lly = paint_limits.lly;
+}
+
+void paint_set_observer_state(struct observer_state *s)
+{
+	memcpy(&paint_limits, s, sizeof(*s));
+}
+
+void paint_get_observer_state(struct observer_state *s)
+{
+	memcpy(s, &paint_limits, sizeof(*s));
 }
 
 void paint_force_redraw(GtkWidget *widget, int clean)
