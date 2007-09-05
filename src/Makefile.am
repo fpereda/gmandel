@@ -17,7 +17,6 @@ gmandel_LDADD = $(PACKAGE_LIBS) -lm
 
 if ENABLE_THREADS
 
-AM_CFLAGS += -DENABLE_THREADS
 gmandel_SOURCES += parallel_paint.c
 gmandel_LDADD   += -lpthread
 

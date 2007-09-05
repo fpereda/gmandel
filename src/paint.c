@@ -59,6 +59,16 @@ static struct {
 	.height = 600,
 };
 
+static struct {
+	long double v;
+	unsigned n;
+	parallel_lockable;
+} avgfactor = {
+	.v = 0,
+	.n = 0,
+	parallel_lockable_init
+};
+
 static long double **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
@@ -186,26 +196,27 @@ void paint_force_redraw(GtkWidget *widget, int clean)
 	paint_mandel(widget);
 }
 
-static long double do_avgfactor(void)
+static long double do_energyfactor(void)
 {
-	long double avg = 0;
-	unsigned navg = 0;
-	for (unsigned i = 0; i < window_size.width; i++)
-		for (unsigned j = 0; j < window_size.height; j++) {
-			if (mupoint[i][j] == 0)
-				continue;
-			avg += mupoint[i][j];
-			navg++;
-		}
-	if (navg > 0)
-		avg /= navg;
+	if (avgfactor.n > 0)
+		avgfactor.v /= avgfactor.n;
 	else
-		avg = 1;
+		avgfactor.v = 1;
 
-	long double squarefactor = sqrtl(log10l(avg * sqrtl(expl(avg))));
-	long double avgfactor = 1000 / squarefactor;
+	long double squarefactor = sqrtl(
+			log10l(avgfactor.v * sqrtl(expl(avgfactor.v))));
+	long double ret = 1000 / squarefactor;
 
-	return avgfactor;
+	/*
+	 * avgfactor has to be reset here. otherwise subsequent calls to
+	 * do_avgfactor will reuse the previously computed energy average values.
+	 * There is no need to synchronize here because all threads have already
+	 * been joined.
+	 */
+	avgfactor.v = 0L;
+	avgfactor.n = 0;
+
+	return ret;
 }
 
 static void plot_points(void)
@@ -215,10 +226,10 @@ static void plot_points(void)
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
 
-	long double avgfactor = do_avgfactor();
+	long double energyfactor = do_energyfactor();
 	for (unsigned i = 0; i < window_size.width; i++) {
 		for (unsigned j = 0; j < window_size.height; j++) {
-			long double factor = mupoint[i][j] * avgfactor;
+			long double factor = mupoint[i][j] * energyfactor;
 			guint32 red = color_ratio.red * factor;
 			guint32 blue = color_ratio.blue * factor;
 			guint32 green = color_ratio.green * factor;
@@ -244,6 +255,8 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 {
 	long double x;
 	long double y;
+	long double acc = 0;
+	unsigned nacc = 0;
 
 	x = paint_limits.ulx + begin * inc;
 	for (unsigned i = 0; i < n; i++) {
@@ -263,6 +276,8 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 				long double mu = it - logl(fabsl(logl(modulus)));
 				mu /= log(2.0);
 				mupoint[i + begin][j] = mu;
+				acc += mu;
+				nacc++;
 			} else
 				mupoint[i + begin][j] = 0L;
 
@@ -270,6 +285,11 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 		}
 		x += inc;
 	}
+
+	parallel_lock(&avgfactor);
+	avgfactor.v += acc;
+	avgfactor.n += nacc;
+	parallel_unlock(&avgfactor);
 }
 
 static void paint_do_mandel(void)

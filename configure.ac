@@ -92,6 +92,9 @@ AC_ARG_ENABLE([threads],
 			   AC_MSG_RESULT([no])])
 if test "x$ENABLE_THREADS" = "xyes" ; then
 	AC_CHECK_LIB(pthread, pthread_create)
+	AC_DEFINE([ENABLE_THREADS], [1], [Enable threaded calculations])
+else
+	AC_DEFINE([ENABLE_THREADS], [0])
 fi
 AC_SUBST([ENABLE_THREADS])
 AM_CONDITIONAL([ENABLE_THREADS], test "x$ENABLE_THREADS" = "xyes")

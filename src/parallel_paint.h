@@ -32,11 +32,21 @@
 #ifndef GMANDEL_PARALLEL_PAINT_H_
 #define GMANDEL_PARALLEL_PAINT_H_ 1
 
-#ifdef ENABLE_THREADS
+#include "config.h"
+
+#if ENABLE_THREADS
+
+#include <pthread.h>
 
 #define N_THREADS (5)
 
 void parallel_paint_do_mu(size_t n, double inc);
+
+#define parallel_lock(x) pthread_mutex_lock(&(x)->mutex)
+#define parallel_unlock(x) pthread_mutex_unlock(&(x)->mutex)
+
+#define parallel_lockable pthread_mutex_t mutex
+#define parallel_lockable_init .mutex = PTHREAD_MUTEX_INITIALIZER
 
 #else
 
@@ -46,6 +56,12 @@ static inline void parallel_paint_do_mu(size_t n, double inc)
 {
 	paint_do_mu(0, n, inc);
 }
+
+#define parallel_lock(x)
+#define parallel_unlock(x)
+
+#define parallel_lockable
+#define parallel_lockable_init
 
 #endif
 
