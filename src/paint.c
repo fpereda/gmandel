@@ -274,7 +274,7 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 			 */
 			if (it > 0) {
 				long double mu = it - logl(fabsl(logl(modulus)));
-				mu /= log(2.0);
+				mu /= M_LN2;
 				mupoint[i + begin][j] = mu;
 				acc += mu;
 				nacc++;
