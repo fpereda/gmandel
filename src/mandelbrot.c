@@ -77,6 +77,9 @@ unsigned mandelbrot_it(
 		y2 = y * y;
 	}
 
+	if (it >= maxit || it == 0)
+		return 0;
+
 	/*
 	 * When using the renormalized formula for the escape radius,
 	 * a couple of additional iterations help reducing the size
@@ -89,9 +92,6 @@ unsigned mandelbrot_it(
 		x2 = x * x;
 		y2 = y * y;
 	}
-
-	if (it >= maxit || it == 0)
-		return 0;
 
 	if (modulus)
 		*modulus = sqrtl(x2 + y2);
