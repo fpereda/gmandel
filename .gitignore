@@ -14,3 +14,5 @@ stamp-h1
 config.h
 config.h.in
 *~
+tags
+callgrind*
