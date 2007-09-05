@@ -13,3 +13,4 @@ stamp-h1
 *.swp
 config.h
 config.h.in
+*~
