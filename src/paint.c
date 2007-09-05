@@ -40,6 +40,7 @@
 #include "parallel_paint.h"
 #include "mandelbrot.h"
 #include "color.h"
+#include "xfuncs.h"
 
 static struct observer_state paint_limits = {
 	.ulx = -2.1,
@@ -311,9 +312,9 @@ void paint_mandel(GtkWidget *widget)
 	static GdkGC *gc = NULL;
 
 	if (!mupoint) {
-		mupoint = malloc(window_size.width * sizeof(*mupoint));
+		mupoint = xmalloc(window_size.width * sizeof(*mupoint));
 		for (unsigned i = 0; i < window_size.width; i++)
-			mupoint[i] = malloc(window_size.height * sizeof(**mupoint));
+			mupoint[i] = xmalloc(window_size.height * sizeof(**mupoint));
 		clean_mupoint();
 	}
 
