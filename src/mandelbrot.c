@@ -52,27 +52,27 @@ unsigned mandelbrot_get_maxit(void)
 }
 
 unsigned mandelbrot_it(
-		long double *xc, long double *yc,
+		long double *cx, long double *cy,
 		long double *modulus)
 {
 	unsigned it = 1;
 
 	long double x;
 	long double y;
-	long double x0;
-	long double y0;
+	long double xc;
+	long double yc;
 	long double x2;
 	long double y2;
 
-	x = x0 = *xc;
-	y = y0 = *yc;
+	x = xc = *cx;
+	y = yc = *cy;
 
 	x2 = x * x;
 	y2 = y * y;
 
 	while ((x2 + y2) < 4 && it++ < maxit) {
-		y = 2 * x * y + y0;
-		x = x2 - y2 + x0;
+		y = 2 * x * y + yc;
+		x = x2 - y2 + xc;
 		x2 = x * x;
 		y2 = y * y;
 	}
@@ -87,8 +87,8 @@ unsigned mandelbrot_it(
 	 */
 	unsigned n = 2;
 	while (n--) {
-		y = 2 * x * y + y0;
-		x = x2 - y2 + x0;
+		y = 2 * x * y + yc;
+		x = x2 - y2 + xc;
 		x2 = x * x;
 		y2 = y * y;
 	}
