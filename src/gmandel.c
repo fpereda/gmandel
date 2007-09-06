@@ -157,10 +157,12 @@ gboolean handle_keypress(
 		case GDK_Right:
 		case GDK_KP_Right:
 #endif
-			printf("Repainting...\n");
+			printf("Repainting... ");
+			fflush(stdout);
 			int clean = (event->keyval == GDK_R
 					|| event->keyval == GDK_r);
 			paint_force_redraw(drawing_area, clean);
+			printf("done\n");
 			break;
 	}
 
