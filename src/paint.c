@@ -200,7 +200,8 @@ void paint_force_redraw(GtkWidget *widget, int clean)
 	pixmap = NULL;
 	if (clean)
 		clean_mupoint();
-	paint_mandel(widget);
+	GdkRectangle area = {0, 0, -1, -1};
+	paint_mandel(widget, area);
 }
 
 static long double do_energyfactor(void)
@@ -307,7 +308,7 @@ static void paint_do_mandel(void)
 	plot_points();
 }
 
-void paint_mandel(GtkWidget *widget)
+void paint_mandel(GtkWidget *widget, GdkRectangle area)
 {
 	static GdkGC *gc = NULL;
 
@@ -328,5 +329,7 @@ void paint_mandel(GtkWidget *widget)
 	gdk_draw_drawable(widget->window,
 			gc,
 			pixmap,
-			0, 0, 0, 0, -1, -1);
+			area.x, area.y,
+			area.x, area.y,
+			area.width, area.height);
 }
