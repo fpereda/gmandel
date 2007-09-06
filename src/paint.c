@@ -198,7 +198,7 @@ void paint_get_observer_state(struct observer_state *s)
 	memcpy(s, &paint_limits, sizeof(*s));
 }
 
-void paint_force_redraw(GtkWidget *widget, int clean)
+void paint_force_redraw(GtkWidget *widget, bool clean)
 {
 	pixmap = NULL;
 	if (clean)
@@ -316,7 +316,7 @@ inc_and_cont:
 	parallel_unlock(&avgfactor);
 }
 
-static void paint_do_mandel(int redoenergy)
+static void paint_do_mandel(bool redoenergy)
 {
 	parallel_paint_do_mu(window_size.width);
 	if (redoenergy)
@@ -324,7 +324,7 @@ static void paint_do_mandel(int redoenergy)
 	plot_points();
 }
 
-void paint_mandel(GtkWidget *widget, GdkRectangle area, int redoenergy)
+void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 {
 	static GdkGC *gc = NULL;
 

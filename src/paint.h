@@ -32,6 +32,8 @@
 #ifndef GMANDEL_PAINT_H_
 #define GMANDEL_PAINT_H_ 1
 
+#include <stdbool.h>
+
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
@@ -41,8 +43,8 @@ struct observer_state {
 	double lly;
 };
 
-void paint_mandel(GtkWidget *widget, GdkRectangle area, int redoenergy);
-void paint_force_redraw(GtkWidget *widget, int clean);
+void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy);
+void paint_force_redraw(GtkWidget *widget, bool clean);
 
 void paint_set_limits(double ulx, double uly, double lly);
 void paint_get_limits(double *ulx, double *uly, double *lly);

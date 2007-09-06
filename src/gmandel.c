@@ -30,6 +30,7 @@
  */
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -52,7 +53,7 @@ gboolean handle_expose(
 		GdkEventExpose *event,
 		gpointer data)
 {
-	paint_mandel(widget, event->area, 0);
+	paint_mandel(widget, event->area, false);
 	return FALSE;
 }
 
