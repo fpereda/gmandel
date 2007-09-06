@@ -43,14 +43,9 @@
 #include "xfuncs.h"
 
 static struct observer_state paint_limits = {
-#if 0
 	.ulx = -2.1,
 	.uly = 1.1,
 	.lly = -1.1,
-#endif
-	.ulx = -2.1,
-	.uly = 0.843063,
-	.lly = -1.35393,
 };
 
 static struct {
