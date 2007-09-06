@@ -203,7 +203,12 @@ void paint_force_redraw(GtkWidget *widget, bool clean)
 	pixmap = NULL;
 	if (clean)
 		clean_mupoint();
-	GdkRectangle area = {0, 0, -1, -1};
+	GdkRectangle area = {
+		.x = 0,
+		.y = 0,
+		.width = -1,
+		.height = -1,
+	};
 	paint_mandel(widget, area, !clean);
 }
 
@@ -264,10 +269,11 @@ static void plot_points(void)
 			blue = blue > cmax ? cmax : blue;
 			green = green > cmax ? cmax : green;
 
-			GdkColor color;
-			color.red = red;
-			color.blue = blue;
-			color.green = green;
+			GdkColor color = {
+				.red = red,
+				.blue = blue,
+				.green = green,
+			};
 
 			gdk_gc_set_rgb_fg_color(gc, &color);
 			gdk_draw_point(pixmap, gc, i, j);
