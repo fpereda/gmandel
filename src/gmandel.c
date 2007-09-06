@@ -52,7 +52,7 @@ gboolean handle_expose(
 		GdkEventExpose *event,
 		gpointer data)
 {
-	paint_mandel(widget, event->area);
+	paint_mandel(widget, event->area, 0);
 	return FALSE;
 }
 
@@ -124,30 +124,27 @@ gboolean handle_keypress(
 		case GDK_minus:
 			nextmaxit -= 100;
 			break;
-#if 0
 		case GDK_Up:
 		case GDK_KP_Up:
-			paint_move_up();
+			paint_move_up(7);
 			break;
 		case GDK_Down:
 		case GDK_KP_Down:
-			paint_move_down();
+			paint_move_down(7);
 			break;
 		case GDK_Left:
 		case GDK_KP_Left:
-			paint_move_left();
+			paint_move_left(7);
 			break;
 		case GDK_Right:
 		case GDK_KP_Right:
-			paint_move_right();
+			paint_move_right(7);
 			break;
-#endif
 	}
 
 	switch (event->keyval) {
 		case GDK_R:
 		case GDK_r:
-#if 0
 		case GDK_Up:
 		case GDK_KP_Up:
 		case GDK_Down:
@@ -156,7 +153,6 @@ gboolean handle_keypress(
 		case GDK_KP_Left:
 		case GDK_Right:
 		case GDK_KP_Right:
-#endif
 			printf("Repainting... ");
 			fflush(stdout);
 			int clean = (event->keyval == GDK_R

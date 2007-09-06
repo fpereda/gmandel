@@ -40,7 +40,7 @@
 
 #define N_THREADS (5)
 
-void parallel_paint_do_mu(size_t n, double inc);
+void parallel_paint_do_mu(size_t n);
 
 #define parallel_lock(x) pthread_mutex_lock(&(x)->mutex)
 #define parallel_unlock(x) pthread_mutex_unlock(&(x)->mutex)
@@ -52,9 +52,9 @@ void parallel_paint_do_mu(size_t n, double inc);
 
 #include "paint.h"
 
-static inline void parallel_paint_do_mu(size_t n, double inc)
+static inline void parallel_paint_do_mu(size_t n)
 {
-	paint_do_mu(0, n, inc);
+	paint_do_mu(0, n);
 }
 
 #define parallel_lock(x)

@@ -40,17 +40,16 @@
 struct paint_do_mu_args {
 	unsigned begin;
 	size_t n;
-	double inc;
 };
 
 static void *adapt_paint_do_mu(void *arg)
 {
 	struct paint_do_mu_args *a = arg;
-	paint_do_mu(a->begin, a->n, a->inc);
+	paint_do_mu(a->begin, a->n);
 	return NULL;
 }
 
-void parallel_paint_do_mu(size_t n, double inc)
+void parallel_paint_do_mu(size_t n)
 {
 	pthread_t threads[N_THREADS];
 	struct paint_do_mu_args args[N_THREADS];
@@ -61,7 +60,6 @@ void parallel_paint_do_mu(size_t n, double inc)
 	for (unsigned i = 0; i < N_THREADS; i++) {
 		args[i].begin = i * each_n;
 		args[i].n = (i == N_THREADS - 1) ? last_n : each_n;
-		args[i].inc = inc;
 		int ret = pthread_create(&threads[i],
 				NULL, adapt_paint_do_mu, &args[i]);
 		if (ret != 0) {

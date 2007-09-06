@@ -41,7 +41,7 @@ struct observer_state {
 	double lly;
 };
 
-void paint_mandel(GtkWidget *widget, GdkRectangle area);
+void paint_mandel(GtkWidget *widget, GdkRectangle area, int redoenergy);
 void paint_force_redraw(GtkWidget *widget, int clean);
 
 void paint_set_limits(double ulx, double uly, double lly);
@@ -53,11 +53,11 @@ void paint_get_observer_state(struct observer_state *s);
 void paint_set_window_size(unsigned width, unsigned height);
 void paint_get_window_size(unsigned *width, unsigned *height);
 
-void paint_do_mu(unsigned begin, size_t n, double inc);
+void paint_do_mu(unsigned begin, size_t n);
 
-void paint_move_up(void);
-void paint_move_down(void);
-void paint_move_left(void);
-void paint_move_right(void);
+void paint_move_up(unsigned n);
+void paint_move_down(unsigned n);
+void paint_move_left(unsigned n);
+void paint_move_right(unsigned n);
 
 #endif

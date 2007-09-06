@@ -43,9 +43,14 @@
 #include "xfuncs.h"
 
 static struct observer_state paint_limits = {
+#if 0
 	.ulx = -2.1,
 	.uly = 1.1,
 	.lly = -1.1,
+#endif
+	.ulx = -2.1,
+	.uly = 0.843063,
+	.lly = -1.35393,
 };
 
 static struct {
@@ -70,11 +75,9 @@ static long double **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
 
-static void clean_mupoint(void)
+static inline double paint_inc(void)
 {
-	for (unsigned i = 0; i < window_size.width; i++)
-		for (unsigned j = 0; j < window_size.height; j++)
-			mupoint[i][j] = -1L;
+	return (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
 }
 
 static void clean_mupoint_col(unsigned i)
@@ -83,22 +86,27 @@ static void clean_mupoint_col(unsigned i)
 		mupoint[i][j] = -1L;
 }
 
+static void clean_mupoint(void)
+{
+	for (unsigned i = 0; i < window_size.width; i++)
+		clean_mupoint_col(i);
+}
+
 static void mupoint_move_up(void)
 {
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
-		memmove(&mupoint[i][0], &mupoint[i][1], num);
+		memmove(&mupoint[i][1], &mupoint[i][0], num);
 		mupoint[i][0] = -1L;
 	}
 }
 
 static void mupoint_move_down(void)
 {
-	unsigned height = window_size.height;
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
-		memmove(&mupoint[i][1], &mupoint[i][0], num);
-		mupoint[i][height - 1] = -1L;
+		memmove(&mupoint[i][0], &mupoint[i][1], num);
+		mupoint[i][window_size.height - 1] = -1L;
 	}
 }
 
@@ -108,7 +116,7 @@ static void mupoint_move_right(void)
 	size_t num = (width - 1) * sizeof(*mupoint);
 
 	void *p = mupoint[0];
-	memmove(&mupoint[1], &mupoint[0], num);
+	memmove(&mupoint[0], &mupoint[1], num);
 	mupoint[width - 1] = p;
 	clean_mupoint_col(width - 1);
 }
@@ -119,39 +127,39 @@ static void mupoint_move_left(void)
 	size_t num = (width - 1) * sizeof(*mupoint);
 
 	void *p = mupoint[width - 1];
-	memmove(&mupoint[0], &mupoint[1], num);
+	memmove(&mupoint[1], &mupoint[0], num);
 	mupoint[0] = p;
 	clean_mupoint_col(0);
 }
 
-void paint_move_up(void)
+void paint_move_up(unsigned n)
 {
-	int inc = (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
-	mupoint_move_up();
-	paint_limits.uly += inc;
-	paint_limits.lly += inc;
+	paint_limits.uly += n * paint_inc();
+	paint_limits.lly += n * paint_inc();
+	while (n--)
+		mupoint_move_up();
 }
 
-void paint_move_down(void)
+void paint_move_down(unsigned n)
 {
-	int inc = (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
-	mupoint_move_down();
-	paint_limits.uly -= inc;
-	paint_limits.lly -= inc;
+	paint_limits.uly -= n * paint_inc();
+	paint_limits.lly -= n * paint_inc();
+	while (n--)
+		mupoint_move_down();
 }
 
-void paint_move_right(void)
+void paint_move_right(unsigned n)
 {
-	int inc = (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
-	mupoint_move_right();
-	paint_limits.ulx += inc;
+	paint_limits.ulx += n * paint_inc();
+	while (n--)
+		mupoint_move_right();
 }
 
-void paint_move_left(void)
+void paint_move_left(unsigned n)
 {
-	int inc = (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
-	mupoint_move_left();
-	paint_limits.ulx -= inc;
+	paint_limits.ulx -= n *paint_inc();
+	while (n--)
+		mupoint_move_left();
 }
 
 void paint_set_window_size(unsigned width, unsigned height)
@@ -201,7 +209,20 @@ void paint_force_redraw(GtkWidget *widget, int clean)
 	if (clean)
 		clean_mupoint();
 	GdkRectangle area = {0, 0, -1, -1};
-	paint_mandel(widget, area);
+	paint_mandel(widget, area, !clean);
+}
+
+static void recalculate_average_energy(void)
+{
+	avgfactor.v = 0L;
+	avgfactor.n = 0;
+	for (unsigned i = 0; i < window_size.width; i++)
+		for (unsigned j = 0; j < window_size.height; j++) {
+			if (mupoint[i][j] == 0)
+				continue;
+			avgfactor.v += mupoint[i][j];
+			avgfactor.n++;
+		}
 }
 
 static long double do_energyfactor(void)
@@ -259,19 +280,19 @@ static void plot_points(void)
 	}
 }
 
-void paint_do_mu(unsigned begin, size_t n, double inc)
+void paint_do_mu(unsigned begin, size_t n)
 {
 	long double x;
 	long double y;
 	long double acc = 0;
 	unsigned nacc = 0;
 
-	x = paint_limits.ulx + begin * inc;
+	x = paint_limits.ulx + begin * paint_inc();
 	for (unsigned i = 0; i < n; i++) {
 		y = paint_limits.uly;
 		for (unsigned j = 0; j < window_size.height; j++) {
-			if (mupoint[i + begin][j] != -1)
-				continue;
+			if (mupoint[i + begin][j] != -1L)
+				goto inc_and_cont;
 
 			long double modulus;
 			unsigned it = mandelbrot_it(&x, &y, &modulus);
@@ -288,10 +309,10 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 				nacc++;
 			} else
 				mupoint[i + begin][j] = 0L;
-
-			y -= inc;
+inc_and_cont:
+			y -= paint_inc();
 		}
-		x += inc;
+		x += paint_inc();
 	}
 
 	parallel_lock(&avgfactor);
@@ -300,15 +321,15 @@ void paint_do_mu(unsigned begin, size_t n, double inc)
 	parallel_unlock(&avgfactor);
 }
 
-static void paint_do_mandel(void)
+static void paint_do_mandel(int redoenergy)
 {
-	unsigned height = window_size.height;
-	double inc = (paint_limits.uly - paint_limits.lly) / (height - 1);
-	parallel_paint_do_mu(window_size.width, inc);
+	parallel_paint_do_mu(window_size.width);
+	if (redoenergy)
+		recalculate_average_energy();
 	plot_points();
 }
 
-void paint_mandel(GtkWidget *widget, GdkRectangle area)
+void paint_mandel(GtkWidget *widget, GdkRectangle area, int redoenergy)
 {
 	static GdkGC *gc = NULL;
 
@@ -322,7 +343,7 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area)
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window,
 				window_size.width, window_size.height, -1);
-		paint_do_mandel();
+		paint_do_mandel(redoenergy);
 		gc = gdk_gc_new(pixmap);
 	}
 
