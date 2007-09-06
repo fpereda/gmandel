@@ -81,11 +81,6 @@ gboolean handle_click(
 	long double x = event->x * inc + ulx;
 	long double y = -(event->y * inc - uly);
 
-#if 0
-	fprintf(stderr, "x = %LF | y = %LF || inc_y = %g | inc_x = %g\n",
-			x, y, inc_y, inc_x);
-#endif
-
 	if (event->button == 1) {
 		struct observer_state *cur = xmalloc(sizeof(*cur));
 		paint_get_observer_state(cur);
