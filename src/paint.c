@@ -41,6 +41,7 @@
 #include "mandelbrot.h"
 #include "color.h"
 #include "xfuncs.h"
+#include "gui_progress.h"
 
 static struct observer_state paint_limits = {
 	.ulx = -2.1,
@@ -314,6 +315,7 @@ inc_and_cont:
 			y -= paint_inc();
 		}
 		x += paint_inc();
+		gui_progress_tick();
 	}
 
 	parallel_lock(&avgfactor);
@@ -324,7 +326,9 @@ inc_and_cont:
 
 static void paint_do_mandel(bool redoenergy)
 {
+	gui_progress_begin(window_size.width);
 	parallel_paint_do_mu(window_size.width);
+	gui_progress_end();
 	if (redoenergy)
 		recalculate_average_energy();
 	plot_points();

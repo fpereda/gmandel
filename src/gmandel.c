@@ -42,6 +42,7 @@
 #include "paint.h"
 #include "stack.h"
 #include "xfuncs.h"
+#include "gui_progress.h"
 
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
 
@@ -202,6 +203,8 @@ int main(int argc, char *argv[])
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 5);
 	gtk_container_add(GTK_CONTAINER(lyout_top), drawing_area);
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
+
+	gui_progress_set_parent(window);
 
 	gtk_widget_show_all(window);
 	gtk_main();

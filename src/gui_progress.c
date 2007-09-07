@@ -37,24 +37,42 @@ static GtkWidget *win = NULL;
 static GtkWidget *bar = NULL;
 static gdouble step = 0.1;
 
+static inline void gtk_events_flush(void)
+{
+	while (gtk_events_pending())
+		gtk_main_iteration();
+}
+
+void gui_progress_set_parent(GtkWidget *parent)
+{
+	win = gtk_window_new(GTK_WINDOW_POPUP);
+	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(parent));
+	gtk_window_set_position(GTK_WINDOW(win),
+			GTK_WIN_POS_CENTER_ON_PARENT);
+	bar = gtk_progress_bar_new();
+	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(bar), "Computing");
+	gtk_container_add(GTK_CONTAINER(win), bar);
+}
+
 void gui_progress_begin(unsigned ticks)
 {
-	if (!win) {
-		win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		bar = gtk_progress_bar_new();
-		gtk_progress_bar_set_text(GTK_PROGRESS_BAR(bar),
-				"Computing");
-		gtk_container_add(GTK_CONTAINER(win), bar);
-	}
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), 0);
-	step = 1.0 / ticks;
 	gtk_widget_show_all(win);
+	step = 1.0L / ticks;
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), 0);
+	gtk_events_flush();
 }
 
 void gui_progress_tick(void)
 {
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar),
-			gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(bar)) + step);
+	static char buf[20];
+	gdouble cur = gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(bar));
+	cur += step;
+	if (cur > 1.0L)
+		return;
+	snprintf(buf, sizeof(buf), "Computing %d %%", (int)(cur * 100));
+	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(bar), buf);
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), cur);
+	gtk_events_flush();
 }
 
 void gui_progress_end(void)
