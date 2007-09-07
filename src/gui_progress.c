@@ -45,10 +45,14 @@ static inline void gtk_events_flush(void)
 
 void gui_progress_set_parent(GtkWidget *parent)
 {
-	win = gtk_window_new(GTK_WINDOW_POPUP);
+	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(parent));
 	gtk_window_set_position(GTK_WINDOW(win),
 			GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_decorated(GTK_WINDOW(win), FALSE);
+	gtk_window_set_skip_pager_hint(GTK_WINDOW(win), TRUE);
+	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(win), TRUE);
+
 	bar = gtk_progress_bar_new();
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(bar), "Computing");
 	gtk_container_add(GTK_CONTAINER(win), bar);
