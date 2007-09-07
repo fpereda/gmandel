@@ -348,8 +348,8 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window,
 				window_size.width, window_size.height, -1);
-		paint_do_mandel(redoenergy);
 		gc = gdk_gc_new(pixmap);
+		paint_do_mandel(redoenergy);
 	}
 
 	gdk_draw_drawable(widget->window,
