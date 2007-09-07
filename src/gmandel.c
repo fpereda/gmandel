@@ -149,20 +149,16 @@ gboolean handle_keypress(
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-		case GDK_KP_Right:
-			printf("Repainting... ");
-			fflush(stdout);
-			int clean = (event->keyval == GDK_R
-					|| event->keyval == GDK_r);
-			paint_force_redraw(drawing_area, clean);
-			printf("done\n");
+			paint_force_redraw(drawing_area,
+					event->keyval == GDK_R || event->keyval == GDK_r);
 			break;
 	}
 
 
 	if (nextmaxit != mandelbrot_get_maxit()) {
 		mandelbrot_set_maxit(nextmaxit);
-		printf("maxit = %d\n", mandelbrot_get_maxit());
+		printf("\rmaxit = %-6d", mandelbrot_get_maxit());
+		fflush(stdout);
 	}
 	
 	return FALSE;
@@ -211,6 +207,8 @@ int main(int argc, char *argv[])
 
 	if (states)
 		stack_destroy(states);
+
+	putchar('\n');
 
 	return EXIT_SUCCESS;
 }
