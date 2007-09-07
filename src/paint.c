@@ -334,6 +334,18 @@ static void paint_do_mandel(bool redoenergy)
 	plot_points();
 }
 
+void paint_mandel_region(GtkWidget *widget, GdkRegion *region, bool redoenergy)
+{
+	GdkRectangle *rect;
+	int n_rects;
+	gdk_region_get_rectangles(region, &rect, &n_rects);
+
+	for (unsigned i = 0; i < n_rects; i++)
+		paint_mandel(widget, rect[i], redoenergy);
+
+	g_free(rect);
+}
+
 void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 {
 	static GdkGC *gc = NULL;

@@ -54,7 +54,7 @@ gboolean handle_expose(
 		GdkEventExpose *event,
 		gpointer data)
 {
-	paint_mandel(widget, event->area, false);
+	paint_mandel_region(widget, event->region, false);
 	return FALSE;
 }
 
