@@ -36,6 +36,7 @@
 static GtkWidget *win = NULL;
 static GtkWidget *bar = NULL;
 static gdouble step = 0.1;
+static gdouble cur = 0;
 
 static inline void gtk_events_flush(void)
 {
@@ -62,6 +63,7 @@ void gui_progress_begin(unsigned ticks)
 {
 	gtk_widget_show_all(win);
 	step = 1.0L / ticks;
+	cur = 0;
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), 0);
 	gtk_events_flush();
 }
@@ -69,7 +71,6 @@ void gui_progress_begin(unsigned ticks)
 void gui_progress_tick(void)
 {
 	static char buf[20];
-	gdouble cur = gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(bar));
 	cur += step;
 	if (cur > 1.0L)
 		return;

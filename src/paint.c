@@ -256,6 +256,8 @@ static void plot_points(void)
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
 
+	unsigned ticked = 0;
+
 	long double energyfactor = do_energyfactor();
 	for (unsigned i = 0; i < window_size.width; i++) {
 		for (unsigned j = 0; j < window_size.height; j++) {
@@ -279,6 +281,8 @@ static void plot_points(void)
 			gdk_gc_set_rgb_fg_color(gc, &color);
 			gdk_draw_point(pixmap, gc, i, j);
 		}
+		if ((ticked++ & 127) == 0)
+			gui_progress_tick();
 	}
 }
 
@@ -288,7 +292,7 @@ void paint_do_mu(unsigned begin, size_t n)
 	long double y;
 	long double acc = 0;
 	unsigned nacc = 0;
-	bool ticked = true;
+	unsigned ticked = 0;
 
 	x = paint_limits.ulx + begin * paint_inc();
 	for (unsigned i = 0; i < n; i++) {
@@ -316,9 +320,8 @@ inc_and_cont:
 			y -= paint_inc();
 		}
 		x += paint_inc();
-		if (ticked)
+		if ((ticked++ & 7) == 0)
 			gui_progress_tick();
-		ticked = !ticked;
 	}
 
 	parallel_lock(&avgfactor);
@@ -329,12 +332,14 @@ inc_and_cont:
 
 static void paint_do_mandel(bool redoenergy)
 {
-	gui_progress_begin(window_size.width / 2);
-	parallel_paint_do_mu(window_size.width);
-	gui_progress_end();
+	unsigned width = window_size.width;
+	unsigned ticks = width / 8 + width / 128;
+	gui_progress_begin(ticks);
+	parallel_paint_do_mu(width);
 	if (redoenergy)
 		recalculate_average_energy();
 	plot_points();
+	gui_progress_end();
 }
 
 void paint_mandel_region(GtkWidget *widget, GdkRegion *region, bool redoenergy)
