@@ -288,6 +288,7 @@ void paint_do_mu(unsigned begin, size_t n)
 	long double y;
 	long double acc = 0;
 	unsigned nacc = 0;
+	bool ticked = true;
 
 	x = paint_limits.ulx + begin * paint_inc();
 	for (unsigned i = 0; i < n; i++) {
@@ -315,7 +316,9 @@ inc_and_cont:
 			y -= paint_inc();
 		}
 		x += paint_inc();
-		gui_progress_tick();
+		if (ticked)
+			gui_progress_tick();
+		ticked = !ticked;
 	}
 
 	parallel_lock(&avgfactor);
@@ -326,7 +329,7 @@ inc_and_cont:
 
 static void paint_do_mandel(bool redoenergy)
 {
-	gui_progress_begin(window_size.width);
+	gui_progress_begin(window_size.width / 2);
 	parallel_paint_do_mu(window_size.width);
 	gui_progress_end();
 	if (redoenergy)
