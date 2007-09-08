@@ -50,6 +50,7 @@ void gui_progress_set_parent(GtkWidget *parent)
 	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(parent));
 	gtk_window_set_position(GTK_WINDOW(win),
 			GTK_WIN_POS_CENTER_ON_PARENT);
+	gtk_window_set_modal(GTK_WINDOW(win), TRUE);
 	gtk_window_set_decorated(GTK_WINDOW(win), FALSE);
 	gtk_window_set_skip_pager_hint(GTK_WINDOW(win), TRUE);
 	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(win), TRUE);
