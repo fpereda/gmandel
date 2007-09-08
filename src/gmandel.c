@@ -48,6 +48,7 @@
 
 static GtkWidget *drawing_area = NULL;
 static stack *states = NULL;
+static bool do_orbits = false;
 
 gboolean handle_expose(
 		GtkWidget *widget,
@@ -55,6 +56,35 @@ gboolean handle_expose(
 		gpointer data)
 {
 	paint_mandel_region(widget, event->region, false);
+	return FALSE;
+}
+
+gboolean handle_motion(
+		GtkWidget *widget,
+		GdkEventButton *event,
+		gpointer data)
+{
+	if (!do_orbits)
+		return FALSE;
+
+	double ulx;
+	double uly;
+	double lly;
+	paint_get_limits(&ulx, &uly, &lly);
+
+	unsigned width;
+	unsigned height;
+	paint_get_window_size(&width, &height);
+
+	double inc_y = uly - lly;
+	double inc = inc_y / (height - 1);
+
+	long double x = event->x * inc + ulx;
+	long double y = -(event->y * inc - uly);
+
+	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
+	paint_mandel(widget, all, false);
+	paint_orbit(widget, x, y);
 	return FALSE;
 }
 
@@ -100,9 +130,9 @@ gboolean handle_click(
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
 	} else if (event->button == 2) {
-		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
-		paint_mandel(widget, all, false);
-		paint_orbit(widget, x, y);
+		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
+		paint_mandel(drawing_area, all, false);
+		do_orbits = !do_orbits;
 		return FALSE;
 	}
 
@@ -159,11 +189,15 @@ gboolean handle_keypress(
 			break;
 	}
 
-
 	if (nextmaxit != mandelbrot_get_maxit()) {
 		mandelbrot_set_maxit(nextmaxit);
 		printf("\rmaxit = %-6d", mandelbrot_get_maxit());
 		fflush(stdout);
+	}
+
+	if (event->keyval == GDK_c || event->keyval == GDK_C) {
+		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
+		paint_mandel(drawing_area, all, false);
 	}
 	
 	return FALSE;
@@ -197,9 +231,12 @@ int main(int argc, char *argv[])
 	drawing_area = gtk_drawing_area_new();
 	g_signal_connect(drawing_area, "expose-event",
 			G_CALLBACK(handle_expose), NULL);
-	gtk_widget_add_events(drawing_area, GDK_BUTTON_PRESS_MASK);
+	gtk_widget_add_events(drawing_area,
+			GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
 	g_signal_connect(drawing_area, "button-press-event",
 			G_CALLBACK(handle_click), NULL);
+	g_signal_connect(drawing_area, "motion-notify-event",
+			G_CALLBACK(handle_motion), NULL);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 5);
 	gtk_container_add(GTK_CONTAINER(lyout_top), drawing_area);
