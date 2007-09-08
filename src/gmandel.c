@@ -61,7 +61,7 @@ gboolean handle_expose(
 
 gboolean handle_motion(
 		GtkWidget *widget,
-		GdkEventButton *event,
+		GdkEventMotion *event,
 		gpointer data)
 {
 	if (!do_orbits)
@@ -85,6 +85,9 @@ gboolean handle_motion(
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
 	paint_mandel(widget, all, false);
 	paint_orbit(widget, x, y);
+
+	/* we are done so ask for more events */
+	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);
 	return FALSE;
 }
 
@@ -231,8 +234,10 @@ int main(int argc, char *argv[])
 	drawing_area = gtk_drawing_area_new();
 	g_signal_connect(drawing_area, "expose-event",
 			G_CALLBACK(handle_expose), NULL);
-	gtk_widget_add_events(drawing_area,
-			GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
+	gtk_widget_add_events(drawing_area, 0
+			| GDK_BUTTON_PRESS_MASK
+			| GDK_POINTER_MOTION_MASK
+			| GDK_POINTER_MOTION_HINT_MASK);
 	g_signal_connect(drawing_area, "button-press-event",
 			G_CALLBACK(handle_click), NULL);
 	g_signal_connect(drawing_area, "motion-notify-event",
