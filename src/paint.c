@@ -71,7 +71,7 @@ static long double **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
 
-static inline double paint_inc(void)
+static inline long double paint_inc(void)
 {
 	return (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
 }
@@ -378,4 +378,69 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 			area.x, area.y,
 			area.x, area.y,
 			area.width, area.height);
+}
+
+static void point_to_pixel(struct orbit_point *o, unsigned *x, unsigned *y)
+{
+	unsigned tx = (o->x - paint_limits.ulx) / paint_inc();
+	unsigned ty = (paint_limits.uly - o->y) / paint_inc();
+
+#define SET_IN_BOUNDS(a, l, u) do { \
+	if ((a) < (l)) \
+		(a) = (l); \
+	if ((a) > (u)) \
+		(a) = (u); \
+} while (0);
+
+	SET_IN_BOUNDS(tx, 0, window_size.width);
+	SET_IN_BOUNDS(ty, 0, window_size.height);
+
+#undef SET_IN_BOUNDS
+
+	*x = tx;
+	*y = ty;
+}
+
+void paint_orbit(GtkWidget *widget, long double x, long double y)
+{
+	static GdkGC *gc = NULL;
+	static GdkColor colors[] = {
+		{ .red = ~0, .green = 0, .blue = 0, },
+		{ .red = 0, .green = ~0, .blue = 0, },
+		{ .red = 0, .green = 0, .blue = ~0, },
+		{ .red = ~0, .green = ~0, .blue = 0, },
+		{ .red = ~0, .green = 0, .blue = ~0, },
+		{ .red = 0, .green = ~0, .blue = ~0, },
+		{ .red = ~0, .green = ~0, .blue = ~0, },
+	};
+
+#define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
+
+	if (gc == NULL)
+		gc = gdk_gc_new(pixmap);
+
+	unsigned n;
+	struct orbit_point *o = mandelbrot_orbit(&x, &y, &n);
+
+
+	for (unsigned i = 0; i < n; i++) {
+		unsigned sx;
+		unsigned sy;
+		unsigned dx;
+		unsigned dy;
+		point_to_pixel(&o[i], &sx, &sy);
+		if (i == 0) {
+			struct orbit_point so = { .x = x, .y = y };
+			point_to_pixel(&so, &dx, &dy);
+		} else
+			point_to_pixel(&o[i - 1], &dx, &dy);
+		gdk_gc_set_rgb_fg_color(gc, &colors[i % SIZEOF_ARRAY(colors)]);
+		gdk_draw_line(widget->window, gc,
+				sx, sy, dx, dy);
+	}
+
+#undef SIZEOF_ARRAY
+
+	free(o);
+	gdk_flush();
 }

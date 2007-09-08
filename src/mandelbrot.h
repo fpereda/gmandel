@@ -32,8 +32,17 @@
 #ifndef GMANDEL_MANDELBROT_H_
 #define GMANDEL_MANDELBROT_H_ 1
 
+struct orbit_point {
+	long double x;
+	long double y;
+};
+
+struct orbit_point *mandelbrot_orbit(
+		long double *cx, long double *cy,
+		unsigned *n);
+
 unsigned mandelbrot_it(
-		long double *xc, long double *yc,
+		long double *cx, long double *cy,
 		long double *modulus);
 
 unsigned mandelbrot_get_maxit(void);

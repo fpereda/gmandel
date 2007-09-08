@@ -33,6 +33,7 @@
 #include <math.h>
 
 #include "mandelbrot.h"
+#include "xfuncs.h"
 
 static unsigned maxit = 1000;
 
@@ -49,6 +50,39 @@ void mandelbrot_set_maxit(long n)
 unsigned mandelbrot_get_maxit(void)
 {
 	return maxit;
+}
+
+struct orbit_point *mandelbrot_orbit(
+		long double *cx, long double *cy,
+		unsigned *n)
+{
+	struct orbit_point *o = xmalloc(maxit * sizeof(*o));
+	unsigned it = 0;
+
+	long double x;
+	long double y;
+	long double xc;
+	long double yc;
+	long double x2;
+	long double y2;
+
+	x = xc = *cx;
+	y = yc = *cy;
+
+	x2 = x * x;
+	y2 = y * y;
+
+	while ((x2 + y2) < 4 && it < maxit) {
+		y = 2 * x * y + yc;
+		x = x2 - y2 + xc;
+		x2 = x * x;
+		y2 = y * y;
+		o[it].x = x;
+		o[it].y = y;
+		*n = it++;
+	}
+
+	return o;
 }
 
 unsigned mandelbrot_it(

@@ -94,11 +94,16 @@ gboolean handle_click(
 		lly = y - inc_y/2;
 		ulx = x - inc_x/2;
 		paint_set_limits(ulx, uly, lly);
-	} else {
+	} else if (event->button == 3) {
 		if (stack_empty(states))
 			return FALSE;
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
+	} else if (event->button == 2) {
+		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
+		paint_mandel(widget, all, false);
+		paint_orbit(widget, x, y);
+		return FALSE;
 	}
 
 	paint_force_redraw(widget, 1);
