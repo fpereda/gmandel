@@ -320,7 +320,7 @@ inc_and_cont:
 			y -= paint_inc();
 		}
 		x += paint_inc();
-		if ((ticked++ & 7) == 0)
+		if ((ticked++ & 15) == 0)
 			gui_progress_tick();
 	}
 
@@ -333,7 +333,7 @@ inc_and_cont:
 static void paint_do_mandel(bool redoenergy)
 {
 	unsigned width = window_size.width;
-	unsigned ticks = width / 8 + width / 128;
+	unsigned ticks = width / 16 + width / 128;
 	gui_progress_begin(ticks);
 	parallel_paint_do_mu(width);
 	if (redoenergy)
