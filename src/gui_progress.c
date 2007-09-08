@@ -29,6 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdbool.h>
+
 #include <gtk/gtk.h>
 
 #include "gui_progress.h"
@@ -37,6 +39,7 @@ static GtkWidget *win = NULL;
 static GtkWidget *bar = NULL;
 static gdouble step = 0.1;
 static gdouble cur = 0;
+static bool active = false;
 
 static inline void gtk_events_flush(void)
 {
@@ -65,6 +68,7 @@ void gui_progress_begin(unsigned ticks)
 	gtk_widget_show_all(win);
 	step = 1.0L / ticks;
 	cur = 0;
+	active = true;
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(bar), 0);
 	gtk_events_flush();
 }
@@ -83,5 +87,11 @@ void gui_progress_tick(void)
 
 void gui_progress_end(void)
 {
+	active = false;
 	gtk_widget_hide_all(win);
+}
+
+bool gui_progress_active(void)
+{
+	return active;
 }

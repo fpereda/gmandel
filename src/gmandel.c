@@ -55,7 +55,20 @@ gboolean handle_expose(
 		GdkEventExpose *event,
 		gpointer data)
 {
+	static stack *pending = NULL;
+	if (!pending)
+		pending = stack_alloc_init(NULL);
+	if (gui_progress_active()) {
+		GdkEvent *e = gtk_get_current_event();
+		stack_push(pending, e);
+		return FALSE;
+	}
 	paint_mandel_region(widget, event->region, false);
+	while (!stack_empty(pending)) {
+		GdkEvent *e = stack_pop(pending);
+		gtk_main_do_event(e);
+		gdk_event_free(e);
+	}
 	return FALSE;
 }
 

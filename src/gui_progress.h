@@ -32,11 +32,14 @@
 #ifndef GMANDEL_GUI_H_
 #define GMANDEL_GUI_H_ 1
 
+#include <stdbool.h>
+
 #include <gtk/gtk.h>
 
 void gui_progress_set_parent(GtkWidget *w);
 void gui_progress_begin(unsigned ticks);
 void gui_progress_tick(void);
 void gui_progress_end(void);
+bool gui_progress_active(void);
 
 #endif
