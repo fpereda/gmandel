@@ -50,6 +50,50 @@ static GtkWidget *drawing_area = NULL;
 static stack *states = NULL;
 static bool do_orbits = false;
 
+static void save_current(void)
+{
+	unsigned width;
+	unsigned height;
+	paint_get_window_size(&width, &height);
+
+	GtkWidget *w = gtk_widget_get_toplevel(drawing_area);
+	GtkWidget *fc = gtk_file_chooser_dialog_new(
+			"Save current image", GTK_WINDOW(w),
+			GTK_FILE_CHOOSER_ACTION_SAVE,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+			NULL);
+	gtk_file_chooser_set_do_overwrite_confirmation(
+			GTK_FILE_CHOOSER(fc), TRUE);
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name(filter, "JPG, PNG and BMP files");
+	gtk_file_filter_add_pixbuf_formats(filter);
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(fc), filter);
+
+	if (gtk_dialog_run(GTK_DIALOG(fc)) != GTK_RESPONSE_ACCEPT)
+		goto cleanup;
+
+	char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fc));
+	char *format = strrchr(filename, '.');
+	if (!format)
+		format = "png";
+	else
+		format++;
+	if (strcmp(format, "jpg") == 0)
+		format = "jpeg";
+	else if (strcmp(format, "jpeg") != 0
+			&& strcmp(format, "bmp") != 0)
+		format = "png";
+
+	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
+			NULL, paint_get_pixmap(), NULL, 0, 0, 0, 0, width, height);
+	gdk_pixbuf_save(buf, filename, format, NULL, NULL);
+	g_free(filename);
+
+cleanup:
+	gtk_widget_destroy(fc);
+}
+
 gboolean handle_expose(
 		GtkWidget *widget,
 		GdkEventExpose *event,
@@ -209,6 +253,11 @@ gboolean handle_keypress(
 		mandelbrot_set_maxit(nextmaxit);
 		printf("\rmaxit = %-6d", mandelbrot_get_maxit());
 		fflush(stdout);
+	}
+
+	if (event->keyval == GDK_s || event->keyval == GDK_S) {
+		save_current();
+		return FALSE;
 	}
 
 	if (event->keyval == GDK_c || event->keyval == GDK_C) {

@@ -48,6 +48,8 @@ void paint_mandel_region(GtkWidget *widget, GdkRegion *region, bool redoenergy);
 void paint_orbit(GtkWidget *widget, long double x, long double y);
 void paint_force_redraw(GtkWidget *widget, bool clean);
 
+GdkPixmap *paint_get_pixmap(void);
+
 void paint_set_limits(double ulx, double uly, double lly);
 void paint_get_limits(double *ulx, double *uly, double *lly);
 

@@ -444,3 +444,8 @@ void paint_orbit(GtkWidget *widget, long double x, long double y)
 
 	free(o);
 }
+
+GdkPixmap *paint_get_pixmap(void)
+{
+	return pixmap;
+}
