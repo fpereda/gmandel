@@ -89,6 +89,8 @@ struct orbit_point *mandelbrot_orbit(
 	x2 = x * x;
 	y2 = y * y;
 
+	*n = 0;
+
 	while ((x2 + y2) < 4 && it < maxit) {
 		y = 2 * x * y + yc;
 		x = x2 - y2 + xc;

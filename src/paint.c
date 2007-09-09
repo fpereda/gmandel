@@ -423,7 +423,6 @@ void paint_orbit(GtkWidget *widget, long double x, long double y)
 	unsigned n;
 	struct orbit_point *o = mandelbrot_orbit(&x, &y, &n);
 
-
 	for (unsigned i = 0; i < n; i++) {
 		unsigned sx;
 		unsigned sy;
