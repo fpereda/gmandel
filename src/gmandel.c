@@ -188,7 +188,8 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 			return FALSE;
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
-	}
+	} else
+		return FALSE;
 
 	paint_force_redraw(widget, true);
 
