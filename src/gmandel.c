@@ -42,6 +42,7 @@
 #include "paint.h"
 #include "stack.h"
 #include "xfuncs.h"
+#include "color.h"
 #include "gui_progress.h"
 #include "gui_about.h"
 
@@ -194,10 +195,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 	return FALSE;
 }
 
-gboolean handle_keypress(
-		GtkWidget *widget,
-		GdkEventKey *event,
-		gpointer data)
+gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	int nextmaxit = mandelbrot_get_maxit();
 	switch (event->keyval) {
@@ -248,24 +246,36 @@ gboolean handle_keypress(
 	return FALSE;
 }
 
-gboolean handle_recompute(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean handle_recompute(GtkWidget *widget, gpointer data)
 {
 	paint_force_redraw(drawing_area, true);
 	return FALSE;
 }
 
-gboolean handle_clean(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean handle_clean(GtkWidget *widget, gpointer data)
 {
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
 	paint_mandel(drawing_area, all, false);
 	return FALSE;
 }
 
-gboolean toggle_orbits(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean toggle_orbits(GtkWidget *widget, gpointer data)
 {
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
 	paint_mandel(drawing_area, all, false);
 	do_orbits = !do_orbits;
+	return FALSE;
+}
+
+gboolean theme_changed(GtkWidget *widget, gpointer data)
+{
+	if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)) == FALSE)
+			return FALSE;
+	char *name = data;
+	char **names = color_get_names();
+	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
+		if (strcmp(name, names[i]) == 0)
+			color_set_current(i);
 	return FALSE;
 }
 
@@ -314,6 +324,26 @@ GtkWidget *build_menu(void)
 	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), orbits);
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(controls), controls_menu);
 
+	/* Colors */
+	GtkWidget *colors = gtk_menu_item_new_with_mnemonic("Color _Themes");
+	GtkWidget *colors_menu = gtk_menu_new();
+
+	GSList *themes_group = NULL;
+	char **color_names = color_get_names();
+	for (unsigned i = 0; i < COLOR_THEME_LAST; i++) {
+		GtkWidget *theme = gtk_radio_menu_item_new_with_label(
+				themes_group, color_names[i]);
+		themes_group = gtk_radio_menu_item_get_group(
+				GTK_RADIO_MENU_ITEM(theme));
+		if (i == 0)
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(theme), TRUE);
+		g_signal_connect(theme, "activate",
+				G_CALLBACK(theme_changed), color_names[i]);
+		gtk_menu_shell_append(GTK_MENU_SHELL(colors_menu), theme);
+	}
+
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(colors), colors_menu);
+
 	/* Help menu */
 	GtkWidget *help = gtk_image_menu_item_new_from_stock(GTK_STOCK_HELP, NULL);
 	GtkWidget *helpmenu = gtk_menu_new();
@@ -329,6 +359,7 @@ GtkWidget *build_menu(void)
 	/* Add everything to the menubar */
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), file);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), controls);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), colors);
 	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help), TRUE);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), help);
 

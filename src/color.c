@@ -29,23 +29,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_COLOR_H_
-#define GMANDEL_COLOR_H_ 1
+#include <stdlib.h>
 
-enum COLOR_THEMES {
-	COLOR_THEME_ICEBLUE = 0,
-	COLOR_THEME_FIRERED = 1,
-	COLOR_THEME_LAST,
+#include "color.h"
+
+static char *color_names[] = {
+	[COLOR_THEME_ICEBLUE] = "iceblue",
+	[COLOR_THEME_FIRERED] = "firered",
+	[COLOR_THEME_LAST] = NULL,
 };
 
-struct color_ratios {
-	float red;
-	float blue;
-	float green;
+static const struct color_ratios color_ratios[] = {
+	[COLOR_THEME_ICEBLUE] = { .red = 0.1, .blue = 1, .green = 0.6 },
+	[COLOR_THEME_FIRERED] = { .red = 1, .blue = 0.1, .green = 0.3 },
 };
 
-char **color_get_names(void);
-const struct color_ratios *color_get_current(void);
-void color_set_current(enum COLOR_THEMES new);
+static enum COLOR_THEMES color_theme = COLOR_THEME_ICEBLUE;
 
-#endif
+char **color_get_names(void)
+{
+	return color_names;
+}
+
+const struct color_ratios *color_get_current(void)
+{
+	return &color_ratios[color_theme];
+}
+
+void color_set_current(enum COLOR_THEMES new)
+{
+	color_theme = new;
+}

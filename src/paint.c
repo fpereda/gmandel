@@ -262,9 +262,9 @@ static void plot_points(void)
 	for (unsigned i = 0; i < window_size.width; i++) {
 		for (unsigned j = 0; j < window_size.height; j++) {
 			long double factor = mupoint[i][j] * energyfactor;
-			guint32 red = color_ratios[color_theme].red * factor;
-			guint32 blue = color_ratios[color_theme].blue * factor;
-			guint32 green = color_ratios[color_theme].green * factor;
+			guint32 red = color_get_current()->red * factor;
+			guint32 blue = color_get_current()->blue * factor;
+			guint32 green = color_get_current()->green * factor;
 
 			static const guint16 cmax = ~0;
 
