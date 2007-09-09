@@ -55,11 +55,17 @@ unsigned mandelbrot_get_maxit(void)
 
 static inline bool mandelbrot_in_cardioid(
 		long double x, long double y,
-		long double x2, long double y2)
+		long double y2)
 {
-	long double modulus = sqrtl(x2 + y2);
-	long double cosi = x / modulus;
-	long double polar = 2 * 0.1 * (1 - cosi);
+	/* these upper bounds are here to prevent checking points that
+	 * are definitely outside of the cardioid
+	 */
+	if (x < -0.75L || x > 0.38L)
+		return false;
+	long double lx = x - 0.25L;
+	long double modulus = sqrtl(lx * lx + y2);
+	long double cosi = lx / modulus;
+	long double polar = 2 * 0.25L * (1 - cosi);
 	return modulus <= polar;
 }
 
@@ -118,7 +124,7 @@ unsigned mandelbrot_it(
 	x2 = x * x;
 	y2 = y * y;
 
-	if (mandelbrot_in_cardioid(x, y, x2, y2))
+	if (mandelbrot_in_cardioid(x, y, y2))
 		return 0;
 
 	while ((x2 + y2) < 4 && it++ < maxit) {
