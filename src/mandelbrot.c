@@ -30,6 +30,7 @@
  */
 
 #include <limits.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include "mandelbrot.h"
@@ -50,6 +51,16 @@ void mandelbrot_set_maxit(long n)
 unsigned mandelbrot_get_maxit(void)
 {
 	return maxit;
+}
+
+static inline bool mandelbrot_in_cardioid(
+		long double x, long double y,
+		long double x2, long double y2)
+{
+	long double modulus = sqrtl(x2 + y2);
+	long double cosi = x / modulus;
+	long double polar = 2 * 0.1 * (1 - cosi);
+	return modulus <= polar;
 }
 
 struct orbit_point *mandelbrot_orbit(
@@ -106,6 +117,9 @@ unsigned mandelbrot_it(
 
 	x2 = x * x;
 	y2 = y * y;
+
+	if (mandelbrot_in_cardioid(x, y, x2, y2))
+		return 0;
 
 	while ((x2 + y2) < 4 && it++ < maxit) {
 		y = 2 * x * y + yc;
