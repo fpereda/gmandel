@@ -43,6 +43,7 @@
 #include "stack.h"
 #include "xfuncs.h"
 #include "gui_progress.h"
+#include "gui_about.h"
 
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
 
@@ -94,10 +95,13 @@ cleanup:
 	gtk_widget_destroy(fc);
 }
 
-gboolean handle_expose(
-		GtkWidget *widget,
-		GdkEventExpose *event,
-		gpointer data)
+gboolean save_wrapper(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	save_current();
+	return FALSE;
+}
+
+gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
 	static stack *pending = NULL;
 	if (!pending)
@@ -116,10 +120,7 @@ gboolean handle_expose(
 	return FALSE;
 }
 
-gboolean handle_motion(
-		GtkWidget *widget,
-		GdkEventMotion *event,
-		gpointer data)
+gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
 	if (!do_orbits)
 		return FALSE;
@@ -148,10 +149,7 @@ gboolean handle_motion(
 	return FALSE;
 }
 
-gboolean handle_click(
-		GtkWidget *widget,
-		GdkEventButton *event,
-		gpointer data)
+gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
 	if (states == NULL)
 		states = stack_alloc_init(free);
@@ -189,14 +187,9 @@ gboolean handle_click(
 			return FALSE;
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
-	} else if (event->button == 2) {
-		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
-		paint_mandel(drawing_area, all, false);
-		do_orbits = !do_orbits;
-		return FALSE;
 	}
 
-	paint_force_redraw(widget, 1);
+	paint_force_redraw(widget, true);
 
 	return FALSE;
 }
@@ -235,8 +228,6 @@ gboolean handle_keypress(
 	}
 
 	switch (event->keyval) {
-		case GDK_R:
-		case GDK_r:
 		case GDK_Up:
 		case GDK_KP_Up:
 		case GDK_Down:
@@ -244,8 +235,7 @@ gboolean handle_keypress(
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-			paint_force_redraw(drawing_area,
-					event->keyval == GDK_R || event->keyval == GDK_r);
+			paint_force_redraw(drawing_area, false);
 			break;
 	}
 
@@ -255,17 +245,94 @@ gboolean handle_keypress(
 		fflush(stdout);
 	}
 
-	if (event->keyval == GDK_s || event->keyval == GDK_S) {
-		save_current();
-		return FALSE;
-	}
-
-	if (event->keyval == GDK_c || event->keyval == GDK_C) {
-		GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
-		paint_mandel(drawing_area, all, false);
-	}
-	
 	return FALSE;
+}
+
+gboolean handle_recompute(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	paint_force_redraw(drawing_area, true);
+	return FALSE;
+}
+
+gboolean handle_clean(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
+	paint_mandel(drawing_area, all, false);
+	return FALSE;
+}
+
+gboolean toggle_orbits(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
+	paint_mandel(drawing_area, all, false);
+	do_orbits = !do_orbits;
+	return FALSE;
+}
+
+gboolean handle_about(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	gui_about_show(gtk_widget_get_toplevel(widget));
+	return FALSE;
+}
+
+GtkWidget *build_menu(void)
+{
+	GtkWidget *menu = gtk_menu_bar_new();
+
+	/* File menu */
+	GtkWidget *file = gtk_menu_item_new_with_mnemonic("_File");
+	GtkWidget *filemenu = gtk_menu_new();
+
+	GtkWidget *save = gtk_image_menu_item_new_from_stock(GTK_STOCK_SAVE, NULL);
+	g_signal_connect(save, "activate",
+			G_CALLBACK(save_wrapper), NULL);
+
+	GtkWidget *quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
+	g_signal_connect(quit, "activate",
+			G_CALLBACK(gtk_main_quit), NULL);
+
+	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), save);
+	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu),
+			gtk_separator_menu_item_new());
+	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
+
+	/* Controls */
+	GtkWidget *controls = gtk_menu_item_new_with_mnemonic("_Controls");
+	GtkWidget *controls_menu = gtk_menu_new();
+
+	GtkWidget *recompute = gtk_menu_item_new_with_mnemonic("_Recompute");
+	g_signal_connect(recompute, "activate", G_CALLBACK(handle_recompute), NULL);
+	GtkWidget *clean = gtk_menu_item_new_with_mnemonic("_Clean");
+	g_signal_connect(clean, "activate", G_CALLBACK(handle_clean), NULL);
+	GtkWidget *orbits = gtk_check_menu_item_new_with_mnemonic("_Orbits");
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(orbits), FALSE);
+	g_signal_connect(orbits, "toggled", G_CALLBACK(toggle_orbits), NULL);
+
+	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), recompute);
+	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), clean);
+	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), orbits);
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(controls), controls_menu);
+
+	/* Help menu */
+	GtkWidget *help = gtk_image_menu_item_new_from_stock(GTK_STOCK_HELP, NULL);
+	GtkWidget *helpmenu = gtk_menu_new();
+
+	GtkWidget *about = gtk_image_menu_item_new_from_stock(GTK_STOCK_ABOUT,
+			NULL);
+	g_signal_connect(about, "activate",
+			G_CALLBACK(handle_about), NULL);
+
+	gtk_menu_shell_append(GTK_MENU_SHELL(helpmenu), about);
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(help), helpmenu);
+
+	/* Add everything to the menubar */
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), file);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), controls);
+	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help), TRUE);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), help);
+
+	return menu;
 }
 
 int main(int argc, char *argv[])
@@ -288,7 +355,6 @@ int main(int argc, char *argv[])
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
-
 	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
 	g_signal_connect(window, "key-press-event",
 			G_CALLBACK(handle_keypress), NULL);
@@ -305,8 +371,10 @@ int main(int argc, char *argv[])
 	g_signal_connect(drawing_area, "motion-notify-event",
 			G_CALLBACK(handle_motion), NULL);
 
-	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 5);
-	gtk_container_add(GTK_CONTAINER(lyout_top), drawing_area);
+	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(lyout_top), build_menu(), FALSE, FALSE, 0);
+	gtk_box_pack_end_defaults(GTK_BOX(lyout_top), drawing_area);
+
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
 
 	gui_progress_set_parent(window);

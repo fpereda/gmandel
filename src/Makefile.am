@@ -10,6 +10,7 @@ bin_PROGRAMS = gmandel
 
 gmandel_SOURCES = gmandel.c \
                   color.h xfuncs.h \
+                  gui_about.c gui_about.h \
                   gui_progress.c gui_progress.h \
                   mandelbrot.c mandelbrot.h \
                   paint.c paint.h \
