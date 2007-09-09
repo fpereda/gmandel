@@ -29,53 +29,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if 1 /* test */
-#   define COLOR_RATIO_BLUE  (1)
-#   define COLOR_RATIO_GREEN (0.6)
-#   define COLOR_RATIO_RED   (0.1)
-#endif
-#if 0 /* blueish */
-#   define COLOR_RATIO_BLUE  (1500)
-#   define COLOR_RATIO_GREEN (800)
-#   define COLOR_RATIO_RED   (150)
-#endif
-#if 0 /* greenish */
-#   define COLOR_RATIO_BLUE  (800)
-#   define COLOR_RATIO_GREEN (1500)
-#   define COLOR_RATIO_RED   (150)
-#endif
-#if 0 /* fireish */
-#   define COLOR_RATIO_BLUE  (10)
-#   define COLOR_RATIO_GREEN (100)
-#   define COLOR_RATIO_RED   (1600)
-#endif
-#if 0 /* greyish */
-#   define COLOR_RATIO_BLUE  (2000)
-#   define COLOR_RATIO_GREEN (2000)
-#   define COLOR_RATIO_RED   (2000)
-#endif
-#if 0 /* yellowish */
-#   define COLOR_RATIO_BLUE  (100)
-#   define COLOR_RATIO_GREEN (2000)
-#   define COLOR_RATIO_RED   (2000)
-#endif
-#if 0 /* purplish */
-#   define COLOR_RATIO_BLUE  (2000)
-#   define COLOR_RATIO_GREEN (100)
-#   define COLOR_RATIO_RED   (2000)
-#endif
-#if 0 /* brownish / orangish / weird */
-#   define COLOR_RATIO_BLUE  (300)
-#   define COLOR_RATIO_GREEN (800)
-#   define COLOR_RATIO_RED   (2000)
-#endif
+enum COLOR_THEMES {
+	COLOR_THEME_ICEBLUE = 0,
+	COLOR_THEME_FIRERED = 1,
+};
+
+static const char *color_names[] = {
+	[COLOR_THEME_ICEBLUE] = "iceblue",
+	[COLOR_THEME_FIRERED] = "firered",
+};
 
 static struct color_ratios_ {
 	float red;
 	float blue;
 	float green;
-} color_ratio = {
-	.red = COLOR_RATIO_RED,
-	.blue = COLOR_RATIO_BLUE,
-	.green = COLOR_RATIO_GREEN,
+} color_ratios[] = {
+	[COLOR_THEME_ICEBLUE] = { .red = 0.1, .blue = 1, .green = 0.6 },
+	[COLOR_THEME_FIRERED] = { .red = 1, .blue = 0.1, .green = 0.3 },
 };
+
+static enum COLOR_THEMES color_theme = COLOR_THEME_ICEBLUE;
