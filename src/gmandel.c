@@ -46,9 +46,9 @@
 #include "gui_progress.h"
 #include "gui_about.h"
 
-#define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
-
+static GtkWidget *window = NULL;
 static GtkWidget *drawing_area = NULL;
+static GtkToggleAction *orbits_action = NULL;
 static stack *states = NULL;
 static bool do_orbits = false;
 
@@ -58,9 +58,8 @@ static void save_current(void)
 	unsigned height;
 	paint_get_window_size(&width, &height);
 
-	GtkWidget *w = gtk_widget_get_toplevel(drawing_area);
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
-			"Save current image", GTK_WINDOW(w),
+			"Save current image", GTK_WINDOW(window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
@@ -94,12 +93,6 @@ static void save_current(void)
 
 cleanup:
 	gtk_widget_destroy(fc);
-}
-
-gboolean save_wrapper(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-	save_current();
-	return FALSE;
 }
 
 gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
@@ -188,8 +181,11 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 			return FALSE;
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
-	} else
+	} else if (event->button == 2) {
+		gtk_toggle_action_set_active(orbits_action,
+				! gtk_toggle_action_get_active(orbits_action));
 		return FALSE;
+	}
 
 	paint_force_redraw(widget, true);
 
@@ -247,20 +243,19 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return FALSE;
 }
 
-gboolean handle_recompute(GtkWidget *widget, gpointer data)
+gboolean handle_save(GtkAction *action, gpointer data)
+{
+	save_current();
+	return FALSE;
+}
+
+gboolean handle_recompute(GtkAction *action, gpointer data)
 {
 	paint_force_redraw(drawing_area, true);
 	return FALSE;
 }
 
-gboolean handle_clean(GtkWidget *widget, gpointer data)
-{
-	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
-	paint_mandel(drawing_area, all, false);
-	return FALSE;
-}
-
-gboolean toggle_orbits(GtkWidget *widget, gpointer data)
+gboolean toggle_orbits(GtkToggleAction *action, gpointer data)
 {
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
 	paint_mandel(drawing_area, all, false);
@@ -280,91 +275,80 @@ gboolean theme_changed(GtkWidget *widget, gpointer data)
 	return FALSE;
 }
 
-gboolean handle_about(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean handle_about(GtkAction *action, gpointer data)
 {
-	gui_about_show(gtk_widget_get_toplevel(widget));
+	gui_about_show(window);
 	return FALSE;
 }
 
 GtkWidget *build_menu(void)
 {
-	GtkWidget *menu = gtk_menu_bar_new();
+	static const GtkActionEntry entries[] = {
+		{ "FileMenu", NULL, "_File" },
+		{ "ControlsMenu", NULL, "_Controls" },
+		{ "ColorMenu", NULL, "Color _Themes" },
+		{ "HelpMenu", GTK_STOCK_HELP, "_Help" },
+		{ "Save", GTK_STOCK_SAVE_AS, "_Save as...",
+			"<control>S", "Save current image", G_CALLBACK(handle_save) },
+		{ "Exit", GTK_STOCK_QUIT, "E_x_it",
+			"<control>Q", "Exit the program", gtk_main_quit },
+		{ "About", GTK_STOCK_ABOUT, "_About",
+			NULL, "Show about information", G_CALLBACK(handle_about) },
+		{ "Recompute", GTK_STOCK_EXECUTE, "_Recompute",
+			"<control>R", "Recompute the set", G_CALLBACK(handle_recompute) },
+	};
 
-	/* File menu */
-	GtkWidget *file = gtk_menu_item_new_with_mnemonic("_File");
-	GtkWidget *filemenu = gtk_menu_new();
+	static const GtkToggleActionEntry toggle_entries[] = {
+		{ "Orbits", NULL, "_Orbits",
+			"<control>O", "Activate / Deactivate mandelbrot orbits",
+			G_CALLBACK(toggle_orbits), FALSE },
+	};
 
-	GtkWidget *save = gtk_image_menu_item_new_from_stock(GTK_STOCK_SAVE, NULL);
-	g_signal_connect(save, "activate",
-			G_CALLBACK(save_wrapper), NULL);
+	static const char *ui_desc = 
+		"<ui>"
+		"  <menubar name='MainMenu'>"
+		"    <menu action='FileMenu'>"
+		"      <menuitem action='Save'/>"
+		"      <separator/>"
+		"      <menuitem action='Exit'/>"
+		"    </menu>"
+		"    <menu action='ControlsMenu'>"
+		"      <menuitem action='Recompute'/>"
+		"      <menuitem action='Orbits'/>"
+		"    </menu>"
+		"    <menu action='HelpMenu'>"
+		"      <menuitem action='About'/>"
+		"    </menu>"
+		"  </menubar>"
+		"</ui>";
 
-	GtkWidget *quit = gtk_image_menu_item_new_from_stock(GTK_STOCK_QUIT, NULL);
-	g_signal_connect(quit, "activate",
-			G_CALLBACK(gtk_main_quit), NULL);
+	GtkActionGroup *action_group = gtk_action_group_new("MenuActions");
+	gtk_action_group_add_actions(
+			action_group, entries, G_N_ELEMENTS(entries), window);
+	gtk_action_group_add_toggle_actions(
+			action_group, toggle_entries, G_N_ELEMENTS(toggle_entries), window);
 
-	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), save);
-	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu),
-			gtk_separator_menu_item_new());
-	gtk_menu_shell_append(GTK_MENU_SHELL(filemenu), quit);
-	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file), filemenu);
+	GtkUIManager *ui_manager = gtk_ui_manager_new();
 
-	/* Controls */
-	GtkWidget *controls = gtk_menu_item_new_with_mnemonic("_Controls");
-	GtkWidget *controls_menu = gtk_menu_new();
+	gtk_ui_manager_insert_action_group(ui_manager, action_group, 0);
+	gtk_window_add_accel_group(GTK_WINDOW(window),
+			gtk_ui_manager_get_accel_group(ui_manager));
 
-	GtkWidget *recompute = gtk_menu_item_new_with_mnemonic("_Recompute");
-	g_signal_connect(recompute, "activate", G_CALLBACK(handle_recompute), NULL);
-	GtkWidget *clean = gtk_menu_item_new_with_mnemonic("_Clean");
-	g_signal_connect(clean, "activate", G_CALLBACK(handle_clean), NULL);
-	GtkWidget *orbits = gtk_check_menu_item_new_with_mnemonic("_Orbits");
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(orbits), FALSE);
-	g_signal_connect(orbits, "toggled", G_CALLBACK(toggle_orbits), NULL);
-
-	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), recompute);
-	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), clean);
-	gtk_menu_shell_append(GTK_MENU_SHELL(controls_menu), orbits);
-	gtk_menu_item_set_submenu(GTK_MENU_ITEM(controls), controls_menu);
-
-	/* Colors */
-	GtkWidget *colors = gtk_menu_item_new_with_mnemonic("Color _Themes");
-	GtkWidget *colors_menu = gtk_menu_new();
-
-	GSList *themes_group = NULL;
-	char **color_names = color_get_names();
-	for (unsigned i = 0; i < COLOR_THEME_LAST; i++) {
-		GtkWidget *theme = gtk_radio_menu_item_new_with_label(
-				themes_group, color_names[i]);
-		themes_group = gtk_radio_menu_item_get_group(
-				GTK_RADIO_MENU_ITEM(theme));
-		if (i == 0)
-			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(theme), TRUE);
-		g_signal_connect(theme, "activate",
-				G_CALLBACK(theme_changed), color_names[i]);
-		gtk_menu_shell_append(GTK_MENU_SHELL(colors_menu), theme);
+	GError *error = NULL;
+	if (!gtk_ui_manager_add_ui_from_string(ui_manager, ui_desc, -1, &error)) {
+		g_message("building menus failed: %s", error->message);
+		g_error_free(error);
+		exit(EXIT_FAILURE);
 	}
 
-	gtk_menu_item_set_submenu(GTK_MENU_ITEM(colors), colors_menu);
+	GtkAction *tmp_action = gtk_ui_manager_get_action(
+			ui_manager, "/MainMenu/ControlsMenu/Orbits");
+	orbits_action = GTK_TOGGLE_ACTION(tmp_action);
 
-	/* Help menu */
-	GtkWidget *help = gtk_image_menu_item_new_from_stock(GTK_STOCK_HELP, NULL);
-	GtkWidget *helpmenu = gtk_menu_new();
-
-	GtkWidget *about = gtk_image_menu_item_new_from_stock(GTK_STOCK_ABOUT,
-			NULL);
-	g_signal_connect(about, "activate",
-			G_CALLBACK(handle_about), NULL);
-
-	gtk_menu_shell_append(GTK_MENU_SHELL(helpmenu), about);
-	gtk_menu_item_set_submenu(GTK_MENU_ITEM(help), helpmenu);
-
-	/* Add everything to the menubar */
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu), file);
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu), controls);
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu), colors);
-	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help), TRUE);
-	gtk_menu_shell_append(GTK_MENU_SHELL(menu), help);
-
-	return menu;
+	GtkWidget *help_menu = gtk_ui_manager_get_widget(
+			ui_manager, "/MainMenu/HelpMenu");
+	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help_menu), TRUE);
+	return gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
 }
 
 int main(int argc, char *argv[])
@@ -380,7 +364,7 @@ int main(int argc, char *argv[])
 
 	gtk_init(&argc, &argv);
 
-	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),
 			"Mandelbrot Set generator by Fernando J. Pereda");
 	gtk_widget_set_size_request(window, width, height);
