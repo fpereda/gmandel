@@ -468,7 +468,7 @@ void paint_box_limits(
 		*uly = -(nuy * paint_inc() - paint_limits.uly);
 }
 
-void paint_box(GtkWidget *widget, 
+void paint_box(GtkWidget *widget,
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy)
 {
 	static GdkGC *gc = NULL;
@@ -484,7 +484,7 @@ void paint_box(GtkWidget *widget,
 
 	if (dx < sx)
 		n_width = -n_width;
-	
+
 	dx = sx + n_width;
 
 	gdk_draw_line(widget->window, gc, sx, sy, dx, sy);

@@ -322,7 +322,7 @@ GtkWidget *build_menu(void)
 			G_CALLBACK(toggle_orbits), FALSE },
 	};
 
-	static const char *ui_desc = 
+	static const char *ui_desc =
 		"<ui>"
 		"  <menubar name='MainMenu'>"
 		"    <menu action='FileMenu'>"
