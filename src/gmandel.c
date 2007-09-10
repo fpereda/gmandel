@@ -223,6 +223,7 @@ void theme_changed(
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
 			color_set_current(i);
+	paint_force_redraw(drawing_area, false);
 }
 
 void handle_about(GtkAction *action, gpointer data)
