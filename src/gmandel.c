@@ -210,16 +210,14 @@ gboolean toggle_orbits(GtkToggleAction *action, gpointer data)
 	return FALSE;
 }
 
-gboolean theme_changed(GtkWidget *widget, gpointer data)
+void theme_changed(
+		GtkRadioAction *action, GtkRadioAction *current, gpointer data)
 {
-	if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)) == FALSE)
-			return FALSE;
-	char *name = data;
+	const char *name = gtk_action_get_name(GTK_ACTION(current));
 	char **names = color_get_names();
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
 			color_set_current(i);
-	return FALSE;
 }
 
 gboolean handle_about(GtkAction *action, gpointer data)

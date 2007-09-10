@@ -33,6 +33,7 @@
 
 #include <gtk/gtk.h>
 
+#include "color.h"
 #include "gui_menu.h"
 #include "gui_callbacks.h"
 
@@ -66,7 +67,17 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 			G_CALLBACK(toggle_orbits), FALSE },
 	};
 
-	static const char *ui_desc =
+	static GtkRadioActionEntry radio_entries[COLOR_THEME_LAST];
+	char **theme_names = color_get_names();
+	for (unsigned i = 0; i < G_N_ELEMENTS(radio_entries); i++) {
+		gchar *tooltip = g_strdup_printf("Set the '%s' theme", theme_names[i]);
+		GtkRadioActionEntry ent = {
+			g_strdup(theme_names[i]), NULL, g_strdup(theme_names[i]),
+			NULL, tooltip, i };
+		radio_entries[i] = ent;
+	}
+
+	static const char *ui_desc_pre =
 		"<ui>"
 		"  <menubar name='MainMenu'>"
 		"    <menu action='FileMenu'>"
@@ -78,17 +89,36 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 		"      <menuitem action='Recompute'/>"
 		"      <menuitem action='Orbits'/>"
 		"    </menu>"
+		"    <menu action='ColorMenu'>";
+
+	gchar *themes_menu_desc = g_strdup("");
+	for (unsigned i = 0; i < G_N_ELEMENTS(radio_entries); i++) {
+		char *buf = g_strdup_printf("<menuitem action='%s'/>", theme_names[i]);
+		gchar *tmp = g_strconcat(themes_menu_desc, buf, NULL);
+		g_free(buf);
+		g_free(themes_menu_desc);
+		themes_menu_desc = tmp;
+	}
+
+	static const char *ui_desc_post =
+		"    </menu>"
 		"    <menu action='HelpMenu'>"
 		"      <menuitem action='About'/>"
 		"    </menu>"
 		"  </menubar>"
 		"</ui>";
 
+	gchar *ui_desc = g_strconcat(
+			ui_desc_pre, themes_menu_desc, ui_desc_post, NULL);
+
 	GtkActionGroup *action_group = gtk_action_group_new("MenuActions");
 	gtk_action_group_add_actions(
 			action_group, entries, G_N_ELEMENTS(entries), window);
 	gtk_action_group_add_toggle_actions(
 			action_group, toggle_entries, G_N_ELEMENTS(toggle_entries), window);
+	gtk_action_group_add_radio_actions(
+			action_group, radio_entries, G_N_ELEMENTS(radio_entries),
+			0, G_CALLBACK(theme_changed), window);
 
 	GtkUIManager *ui_manager = gtk_ui_manager_new();
 
@@ -110,7 +140,9 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 	GtkWidget *help_menu = gtk_ui_manager_get_widget(
 			ui_manager, "/MainMenu/HelpMenu");
 	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help_menu), TRUE);
-	return gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
+	GtkWidget *menu = gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
+
+	g_free(ui_desc);
+
+	return menu;
 }
-
-
