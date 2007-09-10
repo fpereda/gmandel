@@ -248,7 +248,6 @@ int main(int argc, char *argv[])
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),
 			"Mandelbrot Set generator by Fernando J. Pereda");
-	gtk_widget_set_size_request(window, width, height);
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
@@ -257,6 +256,7 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_keypress), NULL);
 
 	drawing_area = gtk_drawing_area_new();
+	gtk_widget_set_size_request(drawing_area, width, height);
 	g_signal_connect(drawing_area, "expose-event",
 			G_CALLBACK(handle_expose), NULL);
 	gtk_widget_add_events(drawing_area, 0
