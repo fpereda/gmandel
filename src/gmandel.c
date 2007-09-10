@@ -146,32 +146,24 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	int nextmaxit = mandelbrot_get_maxit();
-	switch (event->keyval) {
-		case GDK_KP_Add:
-		case GDK_plus:
-			nextmaxit += 100;
-			break;
-		case GDK_KP_Subtract:
-		case GDK_minus:
-			nextmaxit -= 100;
-			break;
-		case GDK_Up:
-		case GDK_KP_Up:
-			paint_move_up(7);
-			break;
-		case GDK_Down:
-		case GDK_KP_Down:
-			paint_move_down(7);
-			break;
-		case GDK_Left:
-		case GDK_KP_Left:
-			paint_move_left(7);
-			break;
-		case GDK_Right:
-		case GDK_KP_Right:
-			paint_move_right(7);
-			break;
-	}
+
+#define EVENT_KEYVAL_EITHER(a, b) \
+	(event->keyval == (a) || event->keyval == (b))
+
+	if (EVENT_KEYVAL_EITHER(GDK_KP_Add, GDK_plus))
+		nextmaxit += 100;
+	else if (EVENT_KEYVAL_EITHER(GDK_KP_Subtract, GDK_minus))
+		nextmaxit -= 100;
+	else if (EVENT_KEYVAL_EITHER(GDK_KP_Up, GDK_Up))
+		paint_move_up(7);
+	else if (EVENT_KEYVAL_EITHER(GDK_KP_Down, GDK_Down))
+		paint_move_down(7);
+	else if (EVENT_KEYVAL_EITHER(GDK_KP_Left, GDK_Left))
+		paint_move_left(7);
+	else if (EVENT_KEYVAL_EITHER(GDK_KP_Right, GDK_Right))
+		paint_move_right(7);
+
+#undef EVENT_KEYVAL_EITHER
 
 	switch (event->keyval) {
 		case GDK_Up:
