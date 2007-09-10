@@ -46,10 +46,11 @@
 #include "gui_progress.h"
 #include "gui_about.h"
 #include "gui_save.h"
+#include "gui_menu.h"
+#include "gui_callbacks.h"
 
 static GtkWidget *window = NULL;
 static GtkWidget *drawing_area = NULL;
-static GtkToggleAction *orbits_action = NULL;
 static stack *states = NULL;
 static bool do_orbits = false;
 
@@ -154,6 +155,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 		paint_set_observer_state(stack_peek(states));
 		free(stack_pop(states));
 	} else if (event->button == 2) {
+		GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
 		gtk_toggle_action_set_active(orbits_action,
 				! gtk_toggle_action_get_active(orbits_action));
 		return FALSE;
@@ -257,76 +259,6 @@ gboolean handle_about(GtkAction *action, gpointer data)
 	return FALSE;
 }
 
-GtkWidget *build_menu(void)
-{
-	static const GtkActionEntry entries[] = {
-		{ "FileMenu", NULL, "_File" },
-		{ "ControlsMenu", NULL, "_Controls" },
-		{ "ColorMenu", NULL, "Color _Themes" },
-		{ "HelpMenu", GTK_STOCK_HELP, "_Help" },
-		{ "Save", GTK_STOCK_SAVE_AS, "_Save as...",
-			"<control>S", "Save current image", G_CALLBACK(handle_save) },
-		{ "Exit", GTK_STOCK_QUIT, "E_x_it",
-			"<control>Q", "Exit the program", gtk_main_quit },
-		{ "About", GTK_STOCK_ABOUT, "_About",
-			NULL, "Show about information", G_CALLBACK(handle_about) },
-		{ "Recompute", GTK_STOCK_EXECUTE, "_Recompute",
-			"<control>R", "Recompute the set", G_CALLBACK(handle_recompute) },
-	};
-
-	static const GtkToggleActionEntry toggle_entries[] = {
-		{ "Orbits", NULL, "_Orbits",
-			"<control>O", "Activate / Deactivate mandelbrot orbits",
-			G_CALLBACK(toggle_orbits), FALSE },
-	};
-
-	static const char *ui_desc =
-		"<ui>"
-		"  <menubar name='MainMenu'>"
-		"    <menu action='FileMenu'>"
-		"      <menuitem action='Save'/>"
-		"      <separator/>"
-		"      <menuitem action='Exit'/>"
-		"    </menu>"
-		"    <menu action='ControlsMenu'>"
-		"      <menuitem action='Recompute'/>"
-		"      <menuitem action='Orbits'/>"
-		"    </menu>"
-		"    <menu action='HelpMenu'>"
-		"      <menuitem action='About'/>"
-		"    </menu>"
-		"  </menubar>"
-		"</ui>";
-
-	GtkActionGroup *action_group = gtk_action_group_new("MenuActions");
-	gtk_action_group_add_actions(
-			action_group, entries, G_N_ELEMENTS(entries), window);
-	gtk_action_group_add_toggle_actions(
-			action_group, toggle_entries, G_N_ELEMENTS(toggle_entries), window);
-
-	GtkUIManager *ui_manager = gtk_ui_manager_new();
-
-	gtk_ui_manager_insert_action_group(ui_manager, action_group, 0);
-	gtk_window_add_accel_group(GTK_WINDOW(window),
-			gtk_ui_manager_get_accel_group(ui_manager));
-
-	GError *error = NULL;
-	if (!gtk_ui_manager_add_ui_from_string(ui_manager, ui_desc, -1, &error)) {
-		g_message("building menus failed: %s", error->message);
-		g_error_free(error);
-		exit(EXIT_FAILURE);
-	}
-
-	GtkAction *tmp_action = gtk_ui_manager_get_action(
-			ui_manager, "/MainMenu/ControlsMenu/Orbits");
-	orbits_action = GTK_TOGGLE_ACTION(tmp_action);
-
-	GtkWidget *help_menu = gtk_ui_manager_get_widget(
-			ui_manager, "/MainMenu/HelpMenu");
-	gtk_menu_item_set_right_justified(GTK_MENU_ITEM(help_menu), TRUE);
-	return gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
-}
-
 int main(int argc, char *argv[])
 {
 	unsigned width;
@@ -364,7 +296,8 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_motion), NULL);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(lyout_top), build_menu(), FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(lyout_top),
+			gui_menu_build(window), FALSE, FALSE, 0);
 	gtk_box_pack_end_defaults(GTK_BOX(lyout_top), drawing_area);
 
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
