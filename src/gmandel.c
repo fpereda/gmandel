@@ -130,7 +130,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 		if (stack_empty(states))
 			return FALSE;
 		paint_set_observer_state(stack_peek(states));
-		free(stack_pop(states));
+		states->destroy(stack_pop(states));
 	} else if (event->button == 2) {
 		GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
 		gtk_toggle_action_set_active(orbits_action,
