@@ -53,7 +53,7 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 		{ "HelpMenu", GTK_STOCK_HELP, "_Help" },
 		{ "Save", GTK_STOCK_SAVE_AS, "_Save as...",
 			"<control>S", "Save current image", G_CALLBACK(handle_save) },
-		{ "Exit", GTK_STOCK_QUIT, "E_x_it",
+		{ "Exit", GTK_STOCK_QUIT, "E_xit",
 			"<control>Q", "Exit the program", gtk_main_quit },
 		{ "About", GTK_STOCK_ABOUT, "_About",
 			NULL, "Show about information", G_CALLBACK(handle_about) },
