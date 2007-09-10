@@ -36,12 +36,16 @@
 static char *color_names[] = {
 	[COLOR_THEME_ICEBLUE] = "iceblue",
 	[COLOR_THEME_FIRERED] = "firered",
+	[COLOR_THEME_GREENPARK] = "greenpark",
+	[COLOR_THEME_GREYSCALE] = "greyscale",
 	[COLOR_THEME_LAST] = NULL,
 };
 
 static const struct color_ratios color_ratios[] = {
 	[COLOR_THEME_ICEBLUE] = { .red = 0.1, .blue = 1, .green = 0.6 },
 	[COLOR_THEME_FIRERED] = { .red = 1, .blue = 0.1, .green = 0.3 },
+	[COLOR_THEME_GREENPARK] = { .red = 0.1, .blue = 0.4, .green = 1 },
+	[COLOR_THEME_GREYSCALE] = { .red = 0.7, .blue = 0.7, .green = 0.7 },
 };
 
 static enum COLOR_THEMES color_theme = COLOR_THEME_ICEBLUE;
