@@ -436,8 +436,6 @@ void paint_orbit(GtkWidget *widget, long double x, long double y)
 		{ .red = ~0, .green = ~0, .blue = ~0, },
 	};
 
-#define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
-
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
 
@@ -455,12 +453,10 @@ void paint_orbit(GtkWidget *widget, long double x, long double y)
 			point_to_pixel(&so, &dx, &dy);
 		} else
 			point_to_pixel(&o[i - 1], &dx, &dy);
-		gdk_gc_set_rgb_fg_color(gc, &colors[i % SIZEOF_ARRAY(colors)]);
+		gdk_gc_set_rgb_fg_color(gc, &colors[i % G_N_ELEMENTS(colors)]);
 		gdk_draw_line(widget->window, gc,
 				sx, sy, dx, dy);
 	}
-
-#undef SIZEOF_ARRAY
 
 	free(o);
 }
