@@ -33,5 +33,6 @@
 #define GMANDEL_GUI_SAVE_H_ 1
 
 void gui_save_current(GtkWidget *window);
+void gui_save_screenshot(GtkWidget *window);
 
 #endif

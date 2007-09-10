@@ -30,11 +30,29 @@
  */
 
 #include <string.h>
+#include <time.h>
 
 #include <gtk/gtk.h>
 
 #include "gui_save.h"
 #include "paint.h"
+
+void gui_save_screenshot(GtkWidget *widget)
+{
+	unsigned width;
+	unsigned height;
+	paint_get_window_size(&width, &height);
+
+	gchar *filename = g_strdup_printf("gmandel_%ld.png", time(NULL));
+
+	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
+			NULL, widget->window, NULL, 0, 0, 0, 0, width, height);
+	gdk_pixbuf_save(buf, filename, "png", NULL, NULL);
+
+	printf("Screenshot saved to '%s'.\n", filename);
+
+	g_free(filename);
+}
 
 void gui_save_current(GtkWidget *window)
 {

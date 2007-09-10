@@ -230,6 +230,11 @@ void handle_about(GtkAction *action, gpointer data)
 	gui_about_show(window);
 }
 
+void handle_screenshot(GtkAction *action, gpointer data)
+{
+	gui_save_screenshot(drawing_area);
+}
+
 int main(int argc, char *argv[])
 {
 	unsigned width;

@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include "color.h"
 #include "gui_menu.h"
@@ -128,6 +129,13 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 	gtk_ui_manager_insert_action_group(ui_manager, action_group, 0);
 	gtk_window_add_accel_group(GTK_WINDOW(window),
 			gtk_ui_manager_get_accel_group(ui_manager));
+
+	GtkAccelGroup *misc_accel = gtk_accel_group_new();
+	GClosure *screen_clos = g_cclosure_new(
+			G_CALLBACK(handle_screenshot), NULL, NULL);
+	gtk_accel_group_connect(misc_accel, GDK_s, GDK_MOD1_MASK,
+			GTK_ACCEL_VISIBLE, screen_clos);
+	gtk_window_add_accel_group(GTK_WINDOW(window), misc_accel);
 
 	GError *error = NULL;
 	if (!gtk_ui_manager_add_ui_from_string(ui_manager, ui_desc, -1, &error)) {
