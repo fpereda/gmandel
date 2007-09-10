@@ -57,6 +57,7 @@ void paint_box(GtkWidget *widget,
 void paint_box_limits(
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy,
 		double *ulx, double *uly, double *lly);
+void paint_set_box_limits(unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 
 GdkPixmap *paint_get_pixmap(void);
 

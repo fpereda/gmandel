@@ -485,6 +485,15 @@ void paint_box_limits(
 		*uly = -(nuy * paint_inc() - paint_limits.uly);
 }
 
+void paint_set_box_limits(unsigned sx, unsigned sy, unsigned dx, unsigned dy)
+{
+	double ulx;
+	double uly;
+	double lly;
+	paint_box_limits(sx, sy, dx, dy, &ulx, &uly, &lly);
+	paint_set_limits(ulx, uly, lly);
+}
+
 void paint_box(GtkWidget *widget,
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy)
 {

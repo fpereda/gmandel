@@ -125,12 +125,8 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 			paint_get_observer_state(cur);
 			stack_push(states, cur);
 
-			double ulx;
-			double uly;
-			double lly;
-			paint_box_limits(select_orig_x, select_orig_y, event->x, event->y,
-					&ulx, &uly, &lly);
-			paint_set_limits(ulx, uly, lly);
+			paint_set_box_limits(select_orig_x, select_orig_y,
+					event->x, event->y);
 			do_select = false;
 		}
 	} else if (event->button == 3) {
