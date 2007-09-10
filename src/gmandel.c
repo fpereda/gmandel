@@ -199,6 +199,8 @@ void handle_save(GtkAction *action, gpointer data)
 void handle_restart(GtkAction *action, gpointer data)
 {
 	paint_set_limits_default();
+	while (!stack_empty(states))
+		states->destroy(stack_pop(states));
 	paint_force_redraw(drawing_area, true);
 }
 
