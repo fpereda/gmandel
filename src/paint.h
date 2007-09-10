@@ -62,7 +62,9 @@ void paint_set_box_limits(unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 GdkPixmap *paint_get_pixmap(void);
 
 void paint_set_limits(double ulx, double uly, double lly);
+void paint_set_limits_default(void);
 void paint_get_limits(double *ulx, double *uly, double *lly);
+
 
 void paint_set_observer_state(struct observer_state *s);
 void paint_get_observer_state(struct observer_state *s);

@@ -196,6 +196,12 @@ void handle_save(GtkAction *action, gpointer data)
 	gui_save_current(window);
 }
 
+void handle_restart(GtkAction *action, gpointer data)
+{
+	paint_set_limits_default();
+	paint_force_redraw(drawing_area, true);
+}
+
 void handle_recompute(GtkAction *action, gpointer data)
 {
 	paint_force_redraw(drawing_area, true);

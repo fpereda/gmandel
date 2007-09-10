@@ -43,10 +43,14 @@
 #include "xfuncs.h"
 #include "gui_progress.h"
 
+#define PAINT_LIMITS_ULX_DEFAULT (-2.1)
+#define PAINT_LIMITS_ULY_DEFAULT (1.1)
+#define PAINT_LIMITS_LLY_DEFAULT (-1.1)
+
 static struct observer_state paint_limits = {
-	.ulx = -2.1,
-	.uly = 1.1,
-	.lly = -1.1,
+	.ulx = PAINT_LIMITS_ULX_DEFAULT,
+	.uly = PAINT_LIMITS_ULY_DEFAULT,
+	.lly = PAINT_LIMITS_LLY_DEFAULT,
 };
 
 static struct {
@@ -522,4 +526,12 @@ void paint_box(GtkWidget *widget,
 GdkPixmap *paint_get_pixmap(void)
 {
 	return pixmap;
+}
+
+void paint_set_limits_default(void)
+{
+	paint_set_limits(
+			PAINT_LIMITS_ULX_DEFAULT,
+			PAINT_LIMITS_ULY_DEFAULT,
+			PAINT_LIMITS_LLY_DEFAULT);
 }

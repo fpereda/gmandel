@@ -59,6 +59,8 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 			NULL, "Show about information", G_CALLBACK(handle_about) },
 		{ "Recompute", GTK_STOCK_EXECUTE, "_Recompute",
 			"<control>R", "Recompute the set", G_CALLBACK(handle_recompute) },
+		{ "Restart", GTK_STOCK_HOME, "R_estart",
+			"<control>H", "Restart the set", G_CALLBACK(handle_restart) },
 	};
 
 	static const GtkToggleActionEntry toggle_entries[] = {
@@ -86,6 +88,7 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 		"      <menuitem action='Exit'/>"
 		"    </menu>"
 		"    <menu action='ControlsMenu'>"
+		"      <menuitem action='Restart' />"
 		"      <menuitem action='Recompute'/>"
 		"      <menuitem action='Orbits'/>"
 		"    </menu>"

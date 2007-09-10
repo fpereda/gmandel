@@ -42,5 +42,6 @@ void toggle_orbits(GtkToggleAction *action, gpointer data);
 void theme_changed(
 		GtkRadioAction *action, GtkRadioAction *current, gpointer data);
 void handle_about(GtkAction *action, gpointer data);
+void handle_restart(GtkAction *action, gpointer data);
 
 #endif
