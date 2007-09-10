@@ -98,4 +98,3 @@ void gui_save_current(GtkWidget *window)
 cleanup:
 	gtk_widget_destroy(fc);
 }
-

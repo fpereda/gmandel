@@ -152,8 +152,7 @@ unsigned mandelbrot_it(
 	if (it >= maxit || it == 0)
 		return 0;
 
-	/*
-	 * When using the renormalized formula for the escape radius,
+	/* When using the renormalized formula for the escape radius,
 	 * a couple of additional iterations help reducing the size
 	 * of the error term.
 	 */

@@ -210,12 +210,7 @@ void paint_force_redraw(GtkWidget *widget, bool clean)
 	pixmap = NULL;
 	if (clean)
 		clean_mupoint();
-	GdkRectangle area = {
-		.x = 0,
-		.y = 0,
-		.width = -1,
-		.height = -1,
-	};
+	GdkRectangle area = { .x = 0, .y = 0, .width = -1, .height = -1 };
 	paint_mandel(widget, area, !clean);
 }
 
@@ -243,11 +238,8 @@ static long double do_energyfactor(void)
 			log10l(avgfactor.v * sqrtl(expl(avgfactor.v))));
 	long double ret = 1000 / squarefactor;
 
-	/*
-	 * avgfactor has to be reset here. otherwise subsequent calls to
-	 * do_avgfactor will reuse the previously computed energy average values.
-	 * There is no need to synchronize here because all threads have already
-	 * been joined.
+	/* avgfactor has to be reset here. otherwise subsequent calls to
+	 * do_energyfactor will reuse the previously computed value
 	 */
 	avgfactor.v = 0L;
 	avgfactor.n = 0;
@@ -278,12 +270,7 @@ static void plot_points(void)
 			blue = blue > cmax ? cmax : blue;
 			green = green > cmax ? cmax : green;
 
-			GdkColor color = {
-				.red = red,
-				.blue = blue,
-				.green = green,
-			};
-
+			GdkColor color = { .red = red, .blue = blue, .green = green };
 			gdk_gc_set_rgb_fg_color(gc, &color);
 			gdk_draw_point(pixmap, gc, i, j);
 		}
@@ -310,8 +297,7 @@ void paint_do_mu(unsigned begin, size_t n)
 			long double modulus;
 			unsigned it = mandelbrot_it(&x, &y, &modulus);
 
-			/*
-			 * Renormalized formula for the escape radius.
+			/* Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
 			 */
 			if (it > 0) {

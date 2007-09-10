@@ -65,7 +65,6 @@ void paint_set_limits(double ulx, double uly, double lly);
 void paint_set_limits_default(void);
 void paint_get_limits(double *ulx, double *uly, double *lly);
 
-
 void paint_set_observer_state(struct observer_state *s);
 void paint_get_observer_state(struct observer_state *s);
 
