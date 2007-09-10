@@ -53,6 +53,17 @@ unsigned mandelbrot_get_maxit(void)
 	return maxit;
 }
 
+static inline bool mandelbrot_in_biggest_mu_atom(
+		long double x, long double y,
+		long double y2)
+{
+	if (x < -1.25L || x > -0.75L || y > 0.25L || y < -0.25L)
+		return false;
+	long double lx = x + 1;
+	long double modulus = sqrtl(lx * lx + y2);
+	return fabsl(modulus) < 0.25L;
+}
+
 static inline bool mandelbrot_in_cardioid(
 		long double x, long double y,
 		long double y2)
@@ -66,7 +77,7 @@ static inline bool mandelbrot_in_cardioid(
 	long double modulus = sqrtl(lx * lx + y2);
 	long double cosi = lx / modulus;
 	long double polar = 2 * 0.25L * (1 - cosi);
-	return modulus <= polar;
+	return modulus < polar;
 }
 
 struct orbit_point *mandelbrot_orbit(
@@ -127,6 +138,8 @@ unsigned mandelbrot_it(
 	y2 = y * y;
 
 	if (mandelbrot_in_cardioid(x, y, y2))
+		return 0;
+	else if (mandelbrot_in_biggest_mu_atom(x, y, y2))
 		return 0;
 
 	while ((x2 + y2) < 4 && it++ < maxit) {
