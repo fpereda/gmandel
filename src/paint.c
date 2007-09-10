@@ -205,6 +205,8 @@ void paint_get_observer_state(struct observer_state *s)
 
 void paint_force_redraw(GtkWidget *widget, bool clean)
 {
+	if (pixmap)
+		g_object_unref(pixmap);
 	pixmap = NULL;
 	if (clean)
 		clean_mupoint();
@@ -372,6 +374,8 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window,
 				window_size.width, window_size.height, -1);
+		if (gc)
+			g_object_unref(gc);
 		gc = gdk_gc_new(pixmap);
 		paint_do_mandel(redoenergy);
 	}

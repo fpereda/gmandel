@@ -51,6 +51,7 @@ void gui_save_screenshot(GtkWidget *widget)
 
 	printf("Screenshot saved to '%s'.\n", filename);
 
+	g_object_unref(buf);
 	g_free(filename);
 }
 
@@ -93,6 +94,7 @@ void gui_save_current(GtkWidget *window)
 	gdk_pixbuf_save(buf, filename, format, NULL, NULL);
 	g_free(filename);
 
+	g_object_unref(buf);
 cleanup:
 	gtk_widget_destroy(fc);
 }
