@@ -191,23 +191,20 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	return FALSE;
 }
 
-gboolean handle_save(GtkAction *action, gpointer data)
+void handle_save(GtkAction *action, gpointer data)
 {
 	gui_save_current(window);
-	return FALSE;
 }
 
-gboolean handle_recompute(GtkAction *action, gpointer data)
+void handle_recompute(GtkAction *action, gpointer data)
 {
 	paint_force_redraw(drawing_area, true);
-	return FALSE;
 }
 
-gboolean toggle_orbits(GtkToggleAction *action, gpointer data)
+void toggle_orbits(GtkToggleAction *action, gpointer data)
 {
 	clean_mandel();
 	do_orbits = !do_orbits;
-	return FALSE;
 }
 
 void theme_changed(
@@ -220,10 +217,9 @@ void theme_changed(
 			color_set_current(i);
 }
 
-gboolean handle_about(GtkAction *action, gpointer data)
+void handle_about(GtkAction *action, gpointer data)
 {
 	gui_about_show(window);
-	return FALSE;
 }
 
 int main(int argc, char *argv[])
