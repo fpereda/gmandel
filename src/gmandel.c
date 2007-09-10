@@ -88,28 +88,12 @@ gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 	if (!do_orbits && !do_select)
 		return FALSE;
 
-	if (do_orbits) {
-		double ulx;
-		double uly;
-		double lly;
-		paint_get_limits(&ulx, &uly, &lly);
+	clean_mandel();
 
-		unsigned width;
-		unsigned height;
-		paint_get_window_size(&width, &height);
-
-		double inc_y = uly - lly;
-		double inc = inc_y / (height - 1);
-
-		long double x = event->x * inc + ulx;
-		long double y = -(event->y * inc - uly);
-
-		clean_mandel();
-		paint_orbit(widget, x, y);
-	} else if (do_select) {
-		clean_mandel();
+	if (do_orbits)
+		paint_orbit_pixel(widget, event->x, event->y);
+	else if (do_select)
 		paint_box(widget, select_orig_x, select_orig_y, event->x, event->y);
-	}
 
 	/* we are done so ask for more events */
 	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);

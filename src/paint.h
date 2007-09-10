@@ -46,7 +46,11 @@ struct observer_state {
 void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy);
 void paint_mandel_region(GtkWidget *widget, GdkRegion *region, bool redoenergy);
 void paint_orbit(GtkWidget *widget, long double x, long double y);
+void paint_orbit_pixel(GtkWidget *widget, unsigned px, unsigned py);
 void paint_force_redraw(GtkWidget *widget, bool clean);
+
+void paint_pixel_to_point(unsigned px, unsigned py,
+		long double *x, long double *y);
 
 void paint_box(GtkWidget *widget,
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy);

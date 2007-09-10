@@ -380,6 +380,15 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 			area.width, area.height);
 }
 
+void paint_pixel_to_point(unsigned px, unsigned py,
+		long double *x, long double *y)
+{
+	if (x)
+		*x = px * paint_inc() + paint_limits.ulx;
+	if (y)
+		*y = -(py * paint_inc() - paint_limits.uly);
+}
+
 static inline void point_to_pixel(
 		struct orbit_point *o, unsigned *x, unsigned *y)
 {
@@ -400,6 +409,14 @@ static inline void point_to_pixel(
 
 	*x = tx;
 	*y = ty;
+}
+
+void paint_orbit_pixel(GtkWidget *widget, unsigned px, unsigned py)
+{
+	long double x;
+	long double y;
+	paint_pixel_to_point(px, py, &x, &y);
+	paint_orbit(widget, x, y);
 }
 
 void paint_orbit(GtkWidget *widget, long double x, long double y)
