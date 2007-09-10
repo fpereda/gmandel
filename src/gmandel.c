@@ -52,6 +52,10 @@ static GtkToggleAction *orbits_action = NULL;
 static stack *states = NULL;
 static bool do_orbits = false;
 
+static unsigned select_orig_x = 0;
+static unsigned select_orig_y = 0;
+static bool do_select = false;
+
 static void save_current(void)
 {
 	unsigned width;
@@ -95,6 +99,12 @@ cleanup:
 	gtk_widget_destroy(fc);
 }
 
+void clean_mandel(void)
+{
+	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
+	paint_mandel(drawing_area, all, false);
+}
+
 gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
 	static stack *pending = NULL;
@@ -116,27 +126,31 @@ gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 
 gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
-	if (!do_orbits)
+	if (!do_orbits && !do_select)
 		return FALSE;
 
-	double ulx;
-	double uly;
-	double lly;
-	paint_get_limits(&ulx, &uly, &lly);
+	if (do_orbits) {
+		double ulx;
+		double uly;
+		double lly;
+		paint_get_limits(&ulx, &uly, &lly);
 
-	unsigned width;
-	unsigned height;
-	paint_get_window_size(&width, &height);
+		unsigned width;
+		unsigned height;
+		paint_get_window_size(&width, &height);
 
-	double inc_y = uly - lly;
-	double inc = inc_y / (height - 1);
+		double inc_y = uly - lly;
+		double inc = inc_y / (height - 1);
 
-	long double x = event->x * inc + ulx;
-	long double y = -(event->y * inc - uly);
+		long double x = event->x * inc + ulx;
+		long double y = -(event->y * inc - uly);
 
-	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
-	paint_mandel(widget, all, false);
-	paint_orbit(widget, x, y);
+		clean_mandel();
+		paint_orbit(widget, x, y);
+	} else if (do_select) {
+		clean_mandel();
+		paint_box(widget, select_orig_x, select_orig_y, event->x, event->y);
+	}
 
 	/* we are done so ask for more events */
 	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);
@@ -148,34 +162,34 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 	if (states == NULL)
 		states = stack_alloc_init(free);
 
-	double ulx;
-	double uly;
-	double lly;
-	paint_get_limits(&ulx, &uly, &lly);
+	if (do_select && event->button != 1) {
+		do_select = false;
+		clean_mandel();
+		return FALSE;
+	}
 
-	unsigned width;
-	unsigned height;
-	paint_get_window_size(&width, &height);
-
-	double inc_y = uly - lly;
-	double inc = inc_y / (height - 1);
-	double inc_x = width * inc;
-
-	long double x = event->x * inc + ulx;
-	long double y = -(event->y * inc - uly);
+	if (do_orbits && event->button != 2)
+		return FALSE;
 
 	if (event->button == 1) {
-		struct observer_state *cur = xmalloc(sizeof(*cur));
-		paint_get_observer_state(cur);
-		stack_push(states, cur);
+		if (!do_select) {
+			select_orig_x = event->x;
+			select_orig_y = event->y;
+			do_select = true;
+			return FALSE;
+		} else {
+			struct observer_state *cur = xmalloc(sizeof(*cur));
+			paint_get_observer_state(cur);
+			stack_push(states, cur);
 
-		inc_y /= 10;
-		inc_x /= 10;
-
-		uly = y + inc_y/2;
-		lly = y - inc_y/2;
-		ulx = x - inc_x/2;
-		paint_set_limits(ulx, uly, lly);
+			double ulx;
+			double uly;
+			double lly;
+			paint_box_limits(select_orig_x, select_orig_y, event->x, event->y,
+					&ulx, &uly, &lly);
+			paint_set_limits(ulx, uly, lly);
+			do_select = false;
+		}
 	} else if (event->button == 3) {
 		if (stack_empty(states))
 			return FALSE;
@@ -234,6 +248,11 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 			break;
 	}
 
+	if (event->keyval == GDK_Escape && do_select) {
+		do_select = false;
+		clean_mandel();
+	}
+
 	if (nextmaxit != mandelbrot_get_maxit()) {
 		mandelbrot_set_maxit(nextmaxit);
 		printf("\rmaxit = %-6d", mandelbrot_get_maxit());
@@ -257,8 +276,7 @@ gboolean handle_recompute(GtkAction *action, gpointer data)
 
 gboolean toggle_orbits(GtkToggleAction *action, gpointer data)
 {
-	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
-	paint_mandel(drawing_area, all, false);
+	clean_mandel();
 	do_orbits = !do_orbits;
 	return FALSE;
 }

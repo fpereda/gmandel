@@ -444,6 +444,55 @@ void paint_orbit(GtkWidget *widget, long double x, long double y)
 	free(o);
 }
 
+void paint_box_limits(
+		unsigned sx, unsigned sy, unsigned dx, unsigned dy,
+		double *ulx, double *uly, double *lly)
+{
+	unsigned n_height = MAX(sy, dy) - MIN(sy, dy);
+	unsigned n_width = window_size.width * n_height / window_size.height;
+	if (dx < sx)
+		n_width = -n_width;
+
+	/* sx, sy, dx and dy are measured in pixels. thats why this
+	 * check is _so_ anti-intuitive
+	 */
+	unsigned nuy = MIN(sy, dy);
+	unsigned nly = MAX(sy, dy);
+	unsigned nux = MIN(sx + n_width, sx);
+
+	if (ulx)
+		*ulx = nux * paint_inc() + paint_limits.ulx;
+	if (lly)
+		*lly = -(nly * paint_inc() - paint_limits.uly);
+	if (uly)
+		*uly = -(nuy * paint_inc() - paint_limits.uly);
+}
+
+void paint_box(GtkWidget *widget, 
+		unsigned sx, unsigned sy, unsigned dx, unsigned dy)
+{
+	static GdkGC *gc = NULL;
+
+	if (gc == NULL)
+		gc = gdk_gc_new(pixmap);
+
+	GdkColor c = { .red = ~0, .blue = ~0, .green = ~0 };
+	gdk_gc_set_rgb_fg_color(gc, &c);
+
+	unsigned n_height = MAX(sy, dy) - MIN(sy, dy);
+	unsigned n_width = window_size.width * n_height / window_size.height;
+
+	if (dx < sx)
+		n_width = -n_width;
+	
+	dx = sx + n_width;
+
+	gdk_draw_line(widget->window, gc, sx, sy, dx, sy);
+	gdk_draw_line(widget->window, gc, sx, sy, sx, dy);
+	gdk_draw_line(widget->window, gc, sx, dy, dx, dy);
+	gdk_draw_line(widget->window, gc, dx, dy, dx, sy);
+}
+
 GdkPixmap *paint_get_pixmap(void)
 {
 	return pixmap;
