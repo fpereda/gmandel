@@ -102,9 +102,6 @@ gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 
 gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
-	if (states == NULL)
-		states = stack_alloc_init(free);
-
 	if (do_select && event->button != 1) {
 		do_select = false;
 		clean_mandel();
@@ -249,6 +246,8 @@ int main(int argc, char *argv[])
 		paint_set_window_size(width, height);
 	} else
 		paint_get_window_size(&width, &height);
+
+	states = stack_alloc_init(free);
 
 	gtk_init(&argc, &argv);
 
