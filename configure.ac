@@ -21,6 +21,8 @@ dnl Basic stuff
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_STDC_HEADERS
 
 dnl {{{ Info about this build
 BUILDUSER=`whoami`
@@ -77,9 +79,7 @@ AC_SUBST([GMANDEL_CFLAGS])
 dnl }}}
 
 dnl {{{ GTK+ and GDK
-PKG_CHECK_MODULES(PACKAGE, [gtk+-2.0 gdk-2.0])
-AC_SUBST(PACKAGE_CFLAGS)
-AC_SUBST(PACKAGE_LIBS)
+PKG_CHECK_MODULES(gtk, [gtk+-2.0 >= 2.8.0])
 dnl }}}
 
 dnl {{{ threads
