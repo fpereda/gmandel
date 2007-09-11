@@ -36,6 +36,7 @@
 
 #include "color.h"
 #include "gui_menu.h"
+#include "gui_actions.h"
 #include "gui_callbacks.h"
 
 static GtkToggleAction *orbits_action = NULL;

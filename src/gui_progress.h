@@ -29,8 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_H_
-#define GMANDEL_GUI_H_ 1
+#ifndef GMANDEL_GUI_PROGRESS_H_
+#define GMANDEL_GUI_PROGRESS_H_ 1
 
 #include <stdbool.h>
 

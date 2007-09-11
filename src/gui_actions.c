@@ -29,15 +29,66 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_CALLBACKS_H_
-#define GMANDEL_GUI_CALLBACKS_H_ 1
+#include <string.h>
 
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 
-gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
-gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
-gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data);
-gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data);
+#include "paint.h"
+#include "color.h"
+#include "gui.h"
+#include "gui_about.h"
+#include "gui_save.h"
+#include "gui_actions.h"
 
-#endif
+void handle_save(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	gui_save_current(gui->window);
+}
+
+void handle_restart(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	paint_set_limits_default();
+	while (!stack_empty(gui->states))
+		gui->states->destroy(stack_pop(gui->states));
+	paint_force_redraw(gui->drawing_area, true);
+}
+
+void handle_recompute(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	paint_force_redraw(gui->drawing_area, true);
+}
+
+void toggle_orbits(GtkToggleAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	paint_clean_mandel(gui->drawing_area);
+	gui->do_orbits = !gui->do_orbits;
+}
+
+void theme_changed(
+		GtkRadioAction *action, GtkRadioAction *current, gpointer data)
+{
+	struct gui_params *gui = data;
+	const char *name = gtk_action_get_name(GTK_ACTION(current));
+	char **names = color_get_names();
+	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
+		if (strcmp(name, names[i]) == 0)
+			color_set_current(i);
+	paint_force_redraw(gui->drawing_area, false);
+}
+
+void handle_about(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	gui_about_show(gui->window);
+}
+
+void handle_screenshot(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	gui_save_screenshot(gui->drawing_area);
+}

@@ -203,6 +203,12 @@ void paint_get_observer_state(struct observer_state *s)
 	memcpy(s, &paint_limits, sizeof(*s));
 }
 
+void paint_clean_mandel(GtkWidget *widget)
+{
+	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
+	paint_mandel(widget, all, false);
+}
+
 void paint_force_redraw(GtkWidget *widget, bool clean)
 {
 	if (pixmap)

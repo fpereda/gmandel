@@ -29,15 +29,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_CALLBACKS_H_
-#define GMANDEL_GUI_CALLBACKS_H_ 1
+#ifndef GMANDEL_GUI_ACTIONS_H_
+#define GMANDEL_GUI_ACTIONS_H_ 1
 
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
-gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
-gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data);
-gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data);
+void handle_save(GtkAction *action, gpointer data);
+void handle_recompute(GtkAction *action, gpointer data);
+void toggle_orbits(GtkToggleAction *action, gpointer data);
+void theme_changed(
+		GtkRadioAction *action, GtkRadioAction *current, gpointer data);
+void handle_about(GtkAction *action, gpointer data);
+void handle_restart(GtkAction *action, gpointer data);
+void handle_screenshot(GtkAction *action, gpointer data);
 
 #endif

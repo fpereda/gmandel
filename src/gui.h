@@ -29,15 +29,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_CALLBACKS_H_
-#define GMANDEL_GUI_CALLBACKS_H_ 1
+#ifndef GMANDEL_GUI_H_
+#define GMANDEL_GUI_H_ 1
 
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
-gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
-gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data);
-gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data);
+#include "stack.h"
+
+struct gui_params {
+	GtkWidget *window;
+	GtkWidget *drawing_area;
+	stack *states;
+	unsigned select_orig_x;
+	unsigned select_orig_y;
+	bool do_select;
+	bool do_orbits;
+};
 
 #endif
