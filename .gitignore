@@ -16,3 +16,4 @@ config.h.in
 *~
 tags
 callgrind*
+gmandel_[0-9]*.png
