@@ -45,7 +45,7 @@ GtkToggleAction *gui_menu_get_orbits_action(void)
 	return orbits_action;
 }
 
-GtkWidget *gui_menu_build(GtkWidget *window)
+GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 {
 	static const GtkActionEntry entries[] = {
 		{ "FileMenu", NULL, "_File" },
@@ -117,12 +117,12 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 
 	GtkActionGroup *action_group = gtk_action_group_new("MenuActions");
 	gtk_action_group_add_actions(
-			action_group, entries, G_N_ELEMENTS(entries), window);
+			action_group, entries, G_N_ELEMENTS(entries), data);
 	gtk_action_group_add_toggle_actions(
-			action_group, toggle_entries, G_N_ELEMENTS(toggle_entries), window);
+			action_group, toggle_entries, G_N_ELEMENTS(toggle_entries), data);
 	gtk_action_group_add_radio_actions(
 			action_group, radio_entries, G_N_ELEMENTS(radio_entries),
-			0, G_CALLBACK(theme_changed), window);
+			0, G_CALLBACK(theme_changed), data);
 
 	GtkUIManager *ui_manager = gtk_ui_manager_new();
 
@@ -132,7 +132,7 @@ GtkWidget *gui_menu_build(GtkWidget *window)
 
 	GtkAccelGroup *misc_accel = gtk_accel_group_new();
 	GClosure *screen_clos = g_cclosure_new(
-			G_CALLBACK(handle_screenshot), NULL, NULL);
+			G_CALLBACK(handle_screenshot), data, NULL);
 	gtk_accel_group_connect(misc_accel, GDK_s, GDK_MOD1_MASK,
 			GTK_ACCEL_VISIBLE, screen_clos);
 	gtk_window_add_accel_group(GTK_WINDOW(window), misc_accel);

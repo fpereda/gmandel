@@ -49,16 +49,17 @@
 #include "gui_menu.h"
 #include "gui_callbacks.h"
 
-static GtkWidget *window = NULL;
-static GtkWidget *drawing_area = NULL;
-static stack *states = NULL;
-static bool do_orbits = false;
+struct gui_params {
+	GtkWidget *window;
+	GtkWidget *drawing_area;
+	stack *states;
+	unsigned select_orig_x;
+	unsigned select_orig_y;
+	bool do_select;
+	bool do_orbits;
+};
 
-static unsigned select_orig_x = 0;
-static unsigned select_orig_y = 0;
-static bool do_select = false;
-
-void clean_mandel(void)
+void clean_mandel(GtkWidget *drawing_area)
 {
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1};
 	paint_mandel(drawing_area, all, false);
@@ -85,15 +86,18 @@ gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 
 gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
-	if (!do_orbits && !do_select)
+	struct gui_params *gui = data;
+	if (!gui->do_orbits && !gui->do_select)
 		return FALSE;
 
-	clean_mandel();
+	clean_mandel(gui->drawing_area);
 
-	if (do_orbits)
+	if (gui->do_orbits)
 		paint_orbit_pixel(widget, event->x, event->y);
-	else if (do_select)
-		paint_box(widget, select_orig_x, select_orig_y, event->x, event->y);
+	else if (gui->do_select)
+		paint_box(widget,
+				gui->select_orig_x, gui->select_orig_y,
+				event->x, event->y);
 
 	/* we are done so ask for more events */
 	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);
@@ -102,35 +106,36 @@ gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
 
 gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
-	if (do_select && event->button != 1) {
-		do_select = false;
-		clean_mandel();
+	struct gui_params *gui = data;
+	if (gui->do_select && event->button != 1) {
+		gui->do_select = false;
+		clean_mandel(gui->drawing_area);
 		return FALSE;
 	}
 
-	if (do_orbits && event->button != 2)
+	if (gui->do_orbits && event->button != 2)
 		return FALSE;
 
 	if (event->button == 1) {
-		if (!do_select) {
-			select_orig_x = event->x;
-			select_orig_y = event->y;
-			do_select = true;
+		if (!gui->do_select) {
+			gui->select_orig_x = event->x;
+			gui->select_orig_y = event->y;
+			gui->do_select = true;
 			return FALSE;
 		} else {
 			struct observer_state *cur = xmalloc(sizeof(*cur));
 			paint_get_observer_state(cur);
-			stack_push(states, cur);
+			stack_push(gui->states, cur);
 
-			paint_set_box_limits(select_orig_x, select_orig_y,
+			paint_set_box_limits(gui->select_orig_x, gui->select_orig_y,
 					event->x, event->y);
-			do_select = false;
+			gui->do_select = false;
 		}
 	} else if (event->button == 3) {
-		if (stack_empty(states))
+		if (stack_empty(gui->states))
 			return FALSE;
-		paint_set_observer_state(stack_peek(states));
-		states->destroy(stack_pop(states));
+		paint_set_observer_state(stack_peek(gui->states));
+		gui->states->destroy(stack_pop(gui->states));
 	} else if (event->button == 2) {
 		GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
 		gtk_toggle_action_set_active(orbits_action,
@@ -145,6 +150,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
+	struct gui_params *gui = data;
 	int nextmaxit = mandelbrot_get_maxit();
 
 #define EVENT_KEYVAL_EITHER(a, b) \
@@ -173,13 +179,13 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-			paint_force_redraw(drawing_area, false);
+			paint_force_redraw(gui->drawing_area, false);
 			break;
 	}
 
-	if (event->keyval == GDK_Escape && do_select) {
-		do_select = false;
-		clean_mandel();
+	if (event->keyval == GDK_Escape && gui->do_select) {
+		gui->do_select = false;
+		clean_mandel(gui->drawing_area);
 	}
 
 	if (nextmaxit != mandelbrot_get_maxit()) {
@@ -193,47 +199,54 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 
 void handle_save(GtkAction *action, gpointer data)
 {
-	gui_save_current(window);
+	struct gui_params *gui = data;
+	gui_save_current(gui->window);
 }
 
 void handle_restart(GtkAction *action, gpointer data)
 {
+	struct gui_params *gui = data;
 	paint_set_limits_default();
-	while (!stack_empty(states))
-		states->destroy(stack_pop(states));
-	paint_force_redraw(drawing_area, true);
+	while (!stack_empty(gui->states))
+		gui->states->destroy(stack_pop(gui->states));
+	paint_force_redraw(gui->drawing_area, true);
 }
 
 void handle_recompute(GtkAction *action, gpointer data)
 {
-	paint_force_redraw(drawing_area, true);
+	struct gui_params *gui = data;
+	paint_force_redraw(gui->drawing_area, true);
 }
 
 void toggle_orbits(GtkToggleAction *action, gpointer data)
 {
-	clean_mandel();
-	do_orbits = !do_orbits;
+	struct gui_params *gui = data;
+	clean_mandel(gui->drawing_area);
+	gui->do_orbits = !gui->do_orbits;
 }
 
 void theme_changed(
 		GtkRadioAction *action, GtkRadioAction *current, gpointer data)
 {
+	struct gui_params *gui = data;
 	const char *name = gtk_action_get_name(GTK_ACTION(current));
 	char **names = color_get_names();
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
 			color_set_current(i);
-	paint_force_redraw(drawing_area, false);
+	paint_force_redraw(gui->drawing_area, false);
 }
 
 void handle_about(GtkAction *action, gpointer data)
 {
-	gui_about_show(window);
+	struct gui_params *gui = data;
+	gui_about_show(gui->window);
 }
 
 void handle_screenshot(GtkAction *action, gpointer data)
 {
-	gui_save_screenshot(drawing_area);
+	struct gui_params *gui = data;
+	gui_save_screenshot(gui->drawing_area);
 }
 
 int main(int argc, char *argv[])
@@ -247,11 +260,17 @@ int main(int argc, char *argv[])
 	} else
 		paint_get_window_size(&width, &height);
 
-	states = stack_alloc_init(free);
+	struct gui_params gui_state = {
+		.do_orbits = false,
+		.do_select = false,
+	};
+
+	gui_state.states = stack_alloc_init(free);
 
 	gtk_init(&argc, &argv);
 
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gui_state.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GtkWidget *window = gui_state.window;
 	gtk_window_set_title(GTK_WINDOW(window),
 			"Mandelbrot Set generator by Fernando J. Pereda");
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
@@ -259,24 +278,25 @@ int main(int argc, char *argv[])
 			G_CALLBACK(gtk_main_quit), NULL);
 	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
 	g_signal_connect(window, "key-press-event",
-			G_CALLBACK(handle_keypress), NULL);
+			G_CALLBACK(handle_keypress), &gui_state);
 
-	drawing_area = gtk_drawing_area_new();
+	gui_state.drawing_area = gtk_drawing_area_new();
+	GtkWidget *drawing_area = gui_state.drawing_area;
 	gtk_widget_set_size_request(drawing_area, width, height);
 	g_signal_connect(drawing_area, "expose-event",
-			G_CALLBACK(handle_expose), NULL);
+			G_CALLBACK(handle_expose), &gui_state);
 	gtk_widget_add_events(drawing_area, 0
 			| GDK_BUTTON_PRESS_MASK
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 	g_signal_connect(drawing_area, "button-press-event",
-			G_CALLBACK(handle_click), NULL);
+			G_CALLBACK(handle_click), &gui_state);
 	g_signal_connect(drawing_area, "motion-notify-event",
-			G_CALLBACK(handle_motion), NULL);
+			G_CALLBACK(handle_motion), &gui_state);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(lyout_top),
-			gui_menu_build(window), FALSE, FALSE, 0);
+			gui_menu_build(window, &gui_state), FALSE, FALSE, 0);
 	gtk_box_pack_end_defaults(GTK_BOX(lyout_top), drawing_area);
 
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
@@ -286,8 +306,8 @@ int main(int argc, char *argv[])
 	gtk_widget_show_all(window);
 	gtk_main();
 
-	if (states)
-		stack_destroy(states);
+	if (gui_state.states)
+		stack_destroy(gui_state.states);
 
 	putchar('\n');
 

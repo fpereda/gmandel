@@ -34,7 +34,7 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget *gui_menu_build(GtkWidget *window);
+GtkWidget *gui_menu_build(GtkWidget *window, gpointer data);
 GtkToggleAction *gui_menu_get_orbits_action(void);
 
 #endif
