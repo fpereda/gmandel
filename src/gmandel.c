@@ -107,7 +107,5 @@ int main(int argc, char *argv[])
 	if (gui_state.states)
 		stack_destroy(gui_state.states);
 
-	putchar('\n');
-
 	return EXIT_SUCCESS;
 }

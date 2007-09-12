@@ -39,6 +39,7 @@
 #include "gui.h"
 #include "gui_menu.h"
 #include "gui_progress.h"
+#include "gui_status.h"
 #include "gui_callbacks.h"
 
 gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
@@ -166,8 +167,7 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 
 	if (nextmaxit != mandelbrot_get_maxit()) {
 		mandelbrot_set_maxit(nextmaxit);
-		printf("\rmaxit = %-6d", mandelbrot_get_maxit());
-		fflush(stdout);
+		gui_status_set("maxit = %-6d", mandelbrot_get_maxit());
 	}
 
 	return FALSE;
