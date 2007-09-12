@@ -132,7 +132,7 @@ GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 			gtk_ui_manager_get_accel_group(ui_manager));
 
 	GtkAccelGroup *misc_accel = gtk_accel_group_new();
-	GClosure *screen_clos = g_cclosure_new(
+	GClosure *screen_clos = g_cclosure_new_swap(
 			G_CALLBACK(handle_screenshot), data, NULL);
 	gtk_accel_group_connect(misc_accel, GDK_s, GDK_MOD1_MASK,
 			GTK_ACCEL_VISIBLE, screen_clos);

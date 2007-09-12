@@ -41,6 +41,6 @@ void theme_changed(
 		GtkRadioAction *action, GtkRadioAction *current, gpointer data);
 void handle_about(GtkAction *action, gpointer data);
 void handle_restart(GtkAction *action, gpointer data);
-void handle_screenshot(GtkAction *action, gpointer data);
+void handle_screenshot(gpointer data);
 
 #endif

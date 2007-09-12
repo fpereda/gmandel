@@ -87,7 +87,7 @@ void handle_about(GtkAction *action, gpointer data)
 	gui_about_show(gui->window);
 }
 
-void handle_screenshot(GtkAction *action, gpointer data)
+void handle_screenshot(gpointer data)
 {
 	struct gui_params *gui = data;
 	gui_save_screenshot(gui->drawing_area);
