@@ -84,10 +84,13 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_expose), &gui_state);
 	gtk_widget_add_events(drawing_area, 0
 			| GDK_BUTTON_PRESS_MASK
+			| GDK_BUTTON_RELEASE_MASK
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
 	g_signal_connect(drawing_area, "button-press-event",
 			G_CALLBACK(handle_click), &gui_state);
+	g_signal_connect(drawing_area, "button-release-event",
+			G_CALLBACK(handle_release), &gui_state);
 	g_signal_connect(drawing_area, "motion-notify-event",
 			G_CALLBACK(handle_motion), &gui_state);
 

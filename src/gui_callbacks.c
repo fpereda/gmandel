@@ -99,14 +99,6 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 			gui->select_orig_y = event->y;
 			gui->do_select = true;
 			return FALSE;
-		} else {
-			struct observer_state *cur = xmalloc(sizeof(*cur));
-			paint_get_observer_state(cur);
-			stack_push(gui->states, cur);
-
-			paint_set_box_limits(gui->select_orig_x, gui->select_orig_y,
-					event->x, event->y);
-			gui->do_select = false;
 		}
 	} else if (event->button == 3) {
 		if (stack_empty(gui->states))
@@ -119,6 +111,25 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
 				! gtk_toggle_action_get_active(orbits_action));
 		return FALSE;
 	}
+
+	paint_force_redraw(widget, true);
+
+	return FALSE;
+}
+
+gboolean handle_release(
+		GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+	struct gui_params *gui = data;
+	if (event->button != 1 || !gui->do_select)
+		return FALSE;
+	struct observer_state *cur = xmalloc(sizeof(*cur));
+	paint_get_observer_state(cur);
+	stack_push(gui->states, cur);
+
+	paint_set_box_limits(gui->select_orig_x, gui->select_orig_y,
+			event->x, event->y);
+	gui->do_select = false;
 
 	paint_force_redraw(widget, true);
 
