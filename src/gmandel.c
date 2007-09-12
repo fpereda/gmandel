@@ -44,6 +44,7 @@
 #include "gui_callbacks.h"
 #include "gui_progress.h"
 #include "gui_menu.h"
+#include "gui_status.h"
 
 int main(int argc, char *argv[])
 {
@@ -93,7 +94,8 @@ int main(int argc, char *argv[])
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(lyout_top),
 			gui_menu_build(window, &gui_state), FALSE, FALSE, 0);
-	gtk_box_pack_end_defaults(GTK_BOX(lyout_top), drawing_area);
+	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), drawing_area);
+	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), gui_status_build());
 
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
 
