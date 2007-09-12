@@ -35,6 +35,7 @@
 #include <gtk/gtk.h>
 
 #include "gui_save.h"
+#include "gui_status.h"
 #include "paint.h"
 
 void gui_save_screenshot(GtkWidget *widget)
@@ -47,10 +48,19 @@ void gui_save_screenshot(GtkWidget *widget)
 
 	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
 			NULL, widget->window, NULL, 0, 0, 0, 0, width, height);
-	gdk_pixbuf_save(buf, filename, "png", NULL, NULL);
 
-	printf("Screenshot saved to '%s'.\n", filename);
+	GError *err = NULL;
+	if (!gdk_pixbuf_save(buf, filename, "png", &err, NULL)) {
+		gui_status_set("Could not save screenshot to %s: %s",
+				filename, err->message);
+		goto cleanup;
+	}
 
+	gui_status_set("Screenshot saved to '%s'", filename);
+
+cleanup:
+	if (err)
+		g_error_free(err);
 	g_object_unref(buf);
 	g_free(filename);
 }
@@ -91,9 +101,20 @@ void gui_save_current(GtkWidget *window)
 
 	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
 			NULL, paint_get_pixmap(), NULL, 0, 0, 0, 0, width, height);
-	gdk_pixbuf_save(buf, filename, format, NULL, NULL);
-	g_free(filename);
 
+	GError *err = NULL;
+	if (!gdk_pixbuf_save(buf, filename, format, &err, NULL)) {
+		gui_status_set("Could not save to file '%s': %s",
+				filename, err->message);
+		goto err_cleanup;
+	}
+
+	gui_status_set("Current image saved to '%s'", filename);
+
+err_cleanup:
+	if (err)
+		g_error_free(err);
+	g_free(filename);
 	g_object_unref(buf);
 cleanup:
 	gtk_widget_destroy(fc);
