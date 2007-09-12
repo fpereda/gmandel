@@ -109,7 +109,8 @@ void gui_save_current(GtkWidget *window)
 		goto err_cleanup;
 	}
 
-	gui_status_set("Current image saved to '%s'", filename);
+	gui_status_set("Current image saved to '%s' with format '%s'",
+			filename, format);
 
 err_cleanup:
 	if (err)
