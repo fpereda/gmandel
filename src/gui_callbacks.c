@@ -123,8 +123,7 @@ gboolean handle_release(
 	struct gui_params *gui = data;
 	if (event->button != 1 || !gui->do_select)
 		return FALSE;
-	else if (gui->select_orig_x == event->x
-			|| gui->select_orig_y == event->y) {
+	else if (gui->select_orig_y == event->y) {
 		gui->do_select = false;
 		paint_clean_mandel(gui->drawing_area);
 		return FALSE;
