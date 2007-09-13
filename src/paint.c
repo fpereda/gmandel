@@ -41,6 +41,7 @@
 #include "mandelbrot.h"
 #include "color.h"
 #include "xfuncs.h"
+#include "gui_status.h"
 #include "gui_progress.h"
 
 #define PAINT_LIMITS_ULX_DEFAULT (-2.1)
@@ -370,6 +371,7 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 			g_object_unref(gc);
 		gc = gdk_gc_new(pixmap);
 		paint_do_mandel(redoenergy);
+		gui_status_set("Finished drawing, select a rectangle to zoom to it");
 	}
 
 	gdk_draw_drawable(widget->window,
