@@ -2,6 +2,7 @@
 
 /*
  * Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>
+ * Copyright (c) 2007, Sergio Martínez Tornell <sertinell@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +64,7 @@ static struct {
 };
 
 static struct {
-	long double v;
+	unsigned v;
 	unsigned n;
 	parallel_lockable;
 } avgfactor = {
@@ -72,7 +73,7 @@ static struct {
 	parallel_lockable_init
 };
 
-static long double **mupoint = NULL;
+static unsigned **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
 
@@ -84,7 +85,7 @@ static inline long double paint_inc(void)
 static void clean_mupoint_col(unsigned i)
 {
 	for (unsigned j = 0; j < window_size.height; j++)
-		mupoint[i][j] = -1L;
+		mupoint[i][j] = UINT_MAX;
 }
 
 static void clean_mupoint(void)
@@ -98,7 +99,7 @@ static void mupoint_move_up(void)
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
 		memmove(&mupoint[i][1], &mupoint[i][0], num);
-		mupoint[i][0] = -1L;
+		mupoint[i][0] = UINT_MAX;
 	}
 }
 
@@ -107,7 +108,7 @@ static void mupoint_move_down(void)
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
 		memmove(&mupoint[i][0], &mupoint[i][1], num);
-		mupoint[i][window_size.height - 1] = -1L;
+		mupoint[i][window_size.height - 1] = UINT_MAX;
 	}
 }
 
@@ -223,7 +224,7 @@ void paint_force_redraw(GtkWidget *widget, bool clean)
 
 static void recalculate_average_energy(void)
 {
-	avgfactor.v = 0L;
+	avgfactor.v = 0;
 	avgfactor.n = 0;
 	for (unsigned i = 0; i < window_size.width; i++)
 		for (unsigned j = 0; j < window_size.height; j++) {
@@ -234,16 +235,14 @@ static void recalculate_average_energy(void)
 		}
 }
 
-static long double do_energyfactor(void)
+static long double do_energyfactor(float lambda, float power)
 {
 	if (avgfactor.n > 0)
 		avgfactor.v /= avgfactor.n;
 	else
 		avgfactor.v = 1;
 
-	long double squarefactor = sqrtl(
-			log10l(avgfactor.v * sqrtl(expl(avgfactor.v))));
-	long double ret = 1000 / squarefactor;
+	long double ret = expl(-lambda * sqrtl(powl(avgfactor.v, power)));
 
 	/* avgfactor has to be reset here. otherwise subsequent calls to
 	 * do_energyfactor will reuse the previously computed value
@@ -263,7 +262,7 @@ static void plot_points(void)
 
 	unsigned ticked = 0;
 
-	long double energyfactor = do_energyfactor();
+	long double energyfactor = do_energyfactor(0.2, 0.8) * 1000;
 	for (unsigned i = 0; i < window_size.width; i++) {
 		for (unsigned j = 0; j < window_size.height; j++) {
 			long double factor = mupoint[i][j] * energyfactor;
@@ -290,7 +289,7 @@ void paint_do_mu(unsigned begin, size_t n)
 {
 	long double x;
 	long double y;
-	long double acc = 0;
+	unsigned acc = 0;
 	unsigned nacc = 0;
 	unsigned ticked = 0;
 
@@ -298,23 +297,17 @@ void paint_do_mu(unsigned begin, size_t n)
 	for (unsigned i = 0; i < n; i++) {
 		y = paint_limits.uly;
 		for (unsigned j = 0; j < window_size.height; j++) {
-			if (mupoint[i + begin][j] != -1L)
+			if (mupoint[i + begin][j] != UINT_MAX)
 				goto inc_and_cont;
 
-			long double modulus;
-			unsigned it = mandelbrot_it(&x, &y, &modulus);
+			unsigned it = mandelbrot_it(&x, &y);
 
-			/* Renormalized formula for the escape radius.
-			 * Optimize away the case where it == 0
-			 */
 			if (it > 0) {
-				long double mu = it - logl(fabsl(logl(modulus)));
-				mu /= M_LN2;
-				mupoint[i + begin][j] = mu;
-				acc += mu;
+				mupoint[i + begin][j] = it;
+				acc += it;
 				nacc++;
 			} else
-				mupoint[i + begin][j] = 0L;
+				mupoint[i + begin][j] = 0;
 inc_and_cont:
 			y -= paint_inc();
 		}

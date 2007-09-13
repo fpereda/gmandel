@@ -41,9 +41,7 @@ struct orbit_point *mandelbrot_orbit(
 		long double *cx, long double *cy,
 		unsigned *n);
 
-unsigned mandelbrot_it(
-		long double *cx, long double *cy,
-		long double *modulus);
+unsigned mandelbrot_it(long double *cx, long double *cy);
 
 unsigned mandelbrot_get_maxit(void);
 void mandelbrot_set_maxit(long n);
