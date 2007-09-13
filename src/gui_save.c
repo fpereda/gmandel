@@ -77,8 +77,9 @@ void gui_save_current(GtkWidget *window)
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 			NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation(
-			GTK_FILE_CHOOSER(fc), TRUE);
+	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(fc), TRUE);
+	gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(fc), TRUE);
+
 	GtkFileFilter *filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, "JPG, PNG and BMP files");
 	gtk_file_filter_add_pixbuf_formats(filter);
