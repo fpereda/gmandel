@@ -64,7 +64,7 @@ static struct {
 };
 
 static struct {
-	unsigned v;
+	long double v;
 	unsigned n;
 	parallel_lockable;
 } avgfactor = {
@@ -73,7 +73,7 @@ static struct {
 	parallel_lockable_init
 };
 
-static unsigned **mupoint = NULL;
+static long double **mupoint = NULL;
 
 static GdkPixmap *pixmap = NULL;
 
@@ -85,7 +85,7 @@ static inline long double paint_inc(void)
 static void clean_mupoint_col(unsigned i)
 {
 	for (unsigned j = 0; j < window_size.height; j++)
-		mupoint[i][j] = UINT_MAX;
+		mupoint[i][j] = -1L;
 }
 
 static void clean_mupoint(void)
@@ -99,7 +99,7 @@ static void mupoint_move_up(void)
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
 		memmove(&mupoint[i][1], &mupoint[i][0], num);
-		mupoint[i][0] = UINT_MAX;
+		mupoint[i][0] = -1L;
 	}
 }
 
@@ -108,7 +108,7 @@ static void mupoint_move_down(void)
 	size_t num = (window_size.height - 1) * sizeof(**mupoint);
 	for (unsigned i = 0; i < window_size.width; i++) {
 		memmove(&mupoint[i][0], &mupoint[i][1], num);
-		mupoint[i][window_size.height - 1] = UINT_MAX;
+		mupoint[i][window_size.height - 1] = -1L;
 	}
 }
 
@@ -224,7 +224,7 @@ void paint_force_redraw(GtkWidget *widget, bool clean)
 
 static void recalculate_average_energy(void)
 {
-	avgfactor.v = 0;
+	avgfactor.v = 0L;
 	avgfactor.n = 0;
 	for (unsigned i = 0; i < window_size.width; i++)
 		for (unsigned j = 0; j < window_size.height; j++) {
@@ -289,7 +289,7 @@ void paint_do_mu(unsigned begin, size_t n)
 {
 	long double x;
 	long double y;
-	unsigned acc = 0;
+	long double acc = 0;
 	unsigned nacc = 0;
 	unsigned ticked = 0;
 
@@ -297,17 +297,23 @@ void paint_do_mu(unsigned begin, size_t n)
 	for (unsigned i = 0; i < n; i++) {
 		y = paint_limits.uly;
 		for (unsigned j = 0; j < window_size.height; j++) {
-			if (mupoint[i + begin][j] != UINT_MAX)
+			if (mupoint[i + begin][j] != -1L)
 				goto inc_and_cont;
 
-			unsigned it = mandelbrot_it(&x, &y);
+			long double modulus;
+			unsigned it = mandelbrot_it(&x, &y, &modulus);
 
+			/* Renormalized formula for the escape radius.
+			 * Optimize away the case where it == 0
+			 */
 			if (it > 0) {
-				mupoint[i + begin][j] = it;
-				acc += it;
+				long double mu = it - logl(fabsl(logl(modulus)));
+				mu /= M_LN2;
+				mupoint[i + begin][j] = mu;
+				acc += mu;
 				nacc++;
 			} else
-				mupoint[i + begin][j] = 0;
+				mupoint[i + begin][j] = 0L;
 inc_and_cont:
 			y -= paint_inc();
 		}

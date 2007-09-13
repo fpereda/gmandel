@@ -118,7 +118,9 @@ struct orbit_point *mandelbrot_orbit(
 	return o;
 }
 
-unsigned mandelbrot_it(long double *cx, long double *cy)
+unsigned mandelbrot_it(
+		long double *cx, long double *cy,
+		long double *modulus)
 {
 	unsigned it = 1;
 
@@ -149,6 +151,21 @@ unsigned mandelbrot_it(long double *cx, long double *cy)
 
 	if (it >= maxit || it == 0)
 		return 0;
+
+	/* When using the renormalized formula for the escape radius,
+	 * a couple of additional iterations help reducing the size
+	 * of the error term.
+	 */
+	unsigned n = 2;
+	while (n--) {
+		y = 2 * x * y + yc;
+		x = x2 - y2 + xc;
+		x2 = x * x;
+		y2 = y * y;
+	}
+
+	if (modulus)
+		*modulus = sqrtl(x2 + y2);
 
 	return it;
 }
