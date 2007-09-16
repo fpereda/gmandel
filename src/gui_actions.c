@@ -40,6 +40,23 @@
 #include "gui_about.h"
 #include "gui_save.h"
 #include "gui_actions.h"
+#include "gui_state.h"
+
+void handle_savestate(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	gui_state_save(gui->window);
+}
+
+void handle_loadstate(GtkAction *action, gpointer data)
+{
+	struct gui_params *gui = data;
+	if (!gui_state_load(gui->window))
+		return;
+	while (!stack_empty(gui->states))
+		gui->states->destroy(stack_pop(gui->states));
+	paint_force_redraw(gui->drawing_area, true);
+}
 
 void handle_save(GtkAction *action, gpointer data)
 {

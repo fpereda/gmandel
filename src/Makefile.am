@@ -14,7 +14,9 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   gui_callbacks.c gui_callbacks.h \
                   gui_menu.c gui_menu.h \
                   gui_progress.c gui_progress.h \
+                  gui_report.c gui_report.h \
                   gui_save.c gui_save.h \
+                  gui_state.c gui_state.h \
                   gui_status.c gui_status.h \
                   mandelbrot.c mandelbrot.h \
                   paint.c paint.h \

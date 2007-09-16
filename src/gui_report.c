@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>
+ * Copyright (c) 2007, Jesus Rodriguez <foxandxss@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_ACTIONS_H_
-#define GMANDEL_GUI_ACTIONS_H_ 1
+#include <stdarg.h>
 
 #include <gtk/gtk.h>
 
-void handle_savestate(GtkAction *action, gpointer data);
-void handle_loadstate(GtkAction *action, gpointer data);
-void handle_save(GtkAction *action, gpointer data);
-void handle_recompute(GtkAction *action, gpointer data);
-void toggle_orbits(GtkToggleAction *action, gpointer data);
-void theme_changed(
-		GtkRadioAction *action, GtkRadioAction *current, gpointer data);
-void handle_about(GtkAction *action, gpointer data);
-void handle_restart(GtkAction *action, gpointer data);
-void handle_screenshot(gpointer data);
+void gui_report_error(GtkWidget *window, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	gchar *message = g_strdup_vprintf(fmt, ap);
+	va_end(ap);
+	GtkWidget *dialog = gtk_message_dialog_new(
+				GTK_WINDOW(window),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+				message);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+	g_free(message);
+}
 
-#endif

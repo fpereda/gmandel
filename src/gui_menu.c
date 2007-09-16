@@ -53,8 +53,12 @@ GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 		{ "ControlsMenu", NULL, "_Controls" },
 		{ "ColorMenu", NULL, "Color _Themes" },
 		{ "HelpMenu", GTK_STOCK_HELP, "_Help" },
-		{ "Save", GTK_STOCK_SAVE_AS, "_Save as...",
-			"<control>S", "Save current image", G_CALLBACK(handle_save) },
+		{ "SaveImage", GTK_STOCK_SAVE_AS, "_Save image",
+			"<shift><control>S", "Save current image", G_CALLBACK(handle_save) },
+		{ "SaveCurrentState", GTK_STOCK_SAVE, "S_ave current state",
+			"<control>S", "Save current state", G_CALLBACK(handle_savestate) },
+		{ "LoadCurrentState", GTK_STOCK_JUMP_TO, "L_oad current state",
+			"<control>O", "Load saved state", G_CALLBACK(handle_loadstate) },
 		{ "Exit", GTK_STOCK_QUIT, "E_xit",
 			"<control>Q", "Exit the program", gtk_main_quit },
 		{ "About", GTK_STOCK_ABOUT, "_About",
@@ -67,7 +71,7 @@ GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 
 	static const GtkToggleActionEntry toggle_entries[] = {
 		{ "Orbits", NULL, "_Orbits",
-			"<control>O", "Activate / Deactivate mandelbrot orbits",
+			"<alt>O", "Activate / Deactivate mandelbrot orbits",
 			G_CALLBACK(toggle_orbits), FALSE },
 	};
 
@@ -85,7 +89,10 @@ GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 		"<ui>"
 		"  <menubar name='MainMenu'>"
 		"    <menu action='FileMenu'>"
-		"      <menuitem action='Save'/>"
+		"      <menuitem action='LoadCurrentState' />"
+		"      <menuitem action='SaveCurrentState' />"
+		"      <separator />"
+		"      <menuitem action='SaveImage'/>"
 		"      <separator/>"
 		"      <menuitem action='Exit'/>"
 		"    </menu>"

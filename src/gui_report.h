@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>
+ * Copyright (c) 2007, Jesus Rodriguez <foxandxss@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_GUI_ACTIONS_H_
-#define GMANDEL_GUI_ACTIONS_H_ 1
+#ifndef GMANDEL_GUI_REPORT_H_
+#define GMANDEL_GUI_REPORT_H_ 1
 
 #include <gtk/gtk.h>
 
-void handle_savestate(GtkAction *action, gpointer data);
-void handle_loadstate(GtkAction *action, gpointer data);
-void handle_save(GtkAction *action, gpointer data);
-void handle_recompute(GtkAction *action, gpointer data);
-void toggle_orbits(GtkToggleAction *action, gpointer data);
-void theme_changed(
-		GtkRadioAction *action, GtkRadioAction *current, gpointer data);
-void handle_about(GtkAction *action, gpointer data);
-void handle_restart(GtkAction *action, gpointer data);
-void handle_screenshot(gpointer data);
+void gui_report_error(GtkWidget *window, const char *fmt, ...);
 
 #endif
