@@ -92,7 +92,7 @@ static bool gmandel_strtod(
 bool gui_state_load(GtkWidget *window)
 {
 	char *filename = NULL;
-	bool err = false;
+	bool err = true;
 
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
 			"Load a state",	GTK_WINDOW(window),
@@ -104,6 +104,8 @@ bool gui_state_load(GtkWidget *window)
 
 	if (gtk_dialog_run(GTK_DIALOG(fc)) != GTK_RESPONSE_ACCEPT)
 		goto cleanup;
+
+	err = false;
 
 	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fc));
 
