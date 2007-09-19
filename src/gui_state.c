@@ -184,7 +184,7 @@ bool gui_state_save(GtkWidget *window)
 	unsigned int maxit = mandelbrot_get_maxit();
 	double ulx, uly, lly;
 	paint_get_limits(&ulx, &uly, &lly);
-	fprintf(file, "%d\n%g\n%g\n%g\n", maxit, ulx, uly, lly);
+	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
 	fclose(file);
 
 	gui_status_set("Correctly saved current state to %s", filename);
