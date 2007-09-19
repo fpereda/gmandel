@@ -40,6 +40,7 @@
 #include "paint.h"
 #include "parallel_paint.h"
 #include "mandelbrot.h"
+#include "mupoint.h"
 #include "color.h"
 #include "xfuncs.h"
 #include "gui_status.h"
@@ -73,65 +74,11 @@ static struct {
 	parallel_lockable_init
 };
 
-static long double **mupoint = NULL;
-
 static GdkPixmap *pixmap = NULL;
 
 static inline long double paint_inc(void)
 {
 	return (paint_limits.uly - paint_limits.lly) / (window_size.height - 1);
-}
-
-static void clean_mupoint_col(unsigned i)
-{
-	for (unsigned j = 0; j < window_size.height; j++)
-		mupoint[i][j] = -1L;
-}
-
-static void clean_mupoint(void)
-{
-	for (unsigned i = 0; i < window_size.width; i++)
-		clean_mupoint_col(i);
-}
-
-static void mupoint_move_up(void)
-{
-	size_t num = (window_size.height - 1) * sizeof(**mupoint);
-	for (unsigned i = 0; i < window_size.width; i++) {
-		memmove(&mupoint[i][1], &mupoint[i][0], num);
-		mupoint[i][0] = -1L;
-	}
-}
-
-static void mupoint_move_down(void)
-{
-	size_t num = (window_size.height - 1) * sizeof(**mupoint);
-	for (unsigned i = 0; i < window_size.width; i++) {
-		memmove(&mupoint[i][0], &mupoint[i][1], num);
-		mupoint[i][window_size.height - 1] = -1L;
-	}
-}
-
-static void mupoint_move_right(void)
-{
-	unsigned width = window_size.width;
-	size_t num = (width - 1) * sizeof(*mupoint);
-
-	void *p = mupoint[0];
-	memmove(&mupoint[0], &mupoint[1], num);
-	mupoint[width - 1] = p;
-	clean_mupoint_col(width - 1);
-}
-
-static void mupoint_move_left(void)
-{
-	unsigned width = window_size.width;
-	size_t num = (width - 1) * sizeof(*mupoint);
-
-	void *p = mupoint[width - 1];
-	memmove(&mupoint[1], &mupoint[0], num);
-	mupoint[0] = p;
-	clean_mupoint_col(0);
 }
 
 void paint_move_up(unsigned n)
@@ -217,13 +164,14 @@ void paint_force_redraw(GtkWidget *widget, bool clean)
 		g_object_unref(pixmap);
 	pixmap = NULL;
 	if (clean)
-		clean_mupoint();
+		mupoint_clean();
 	GdkRectangle area = { .x = 0, .y = 0, .width = -1, .height = -1 };
 	paint_mandel(widget, area, !clean);
 }
 
 static void recalculate_average_energy(void)
 {
+	gmandel_mu_t **mupoint = mupoint_get_mupoint();
 	avgfactor.v = 0L;
 	avgfactor.n = 0;
 	for (unsigned i = 0; i < window_size.width; i++)
@@ -260,6 +208,8 @@ static void plot_points(void)
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
 
+	gmandel_mu_t **mupoint = mupoint_get_mupoint();
+
 	unsigned ticked = 0;
 
 	long double energyfactor = do_energyfactor(0.2, 0.8) * 1000;
@@ -292,6 +242,8 @@ void paint_do_mu(unsigned begin, size_t n)
 	long double acc = 0;
 	unsigned nacc = 0;
 	unsigned ticked = 0;
+
+	gmandel_mu_t **mupoint = mupoint_get_mupoint();
 
 	x = paint_limits.ulx + begin * paint_inc();
 	for (unsigned i = 0; i < n; i++) {
@@ -356,12 +308,7 @@ void paint_mandel(GtkWidget *widget, GdkRectangle area, bool redoenergy)
 {
 	static GdkGC *gc = NULL;
 
-	if (!mupoint) {
-		mupoint = xmalloc(window_size.width * sizeof(*mupoint));
-		for (unsigned i = 0; i < window_size.width; i++)
-			mupoint[i] = xmalloc(window_size.height * sizeof(**mupoint));
-		clean_mupoint();
-	}
+	mupoint_create_as_needed(window_size.width, window_size.height);
 
 	if (!pixmap) {
 		pixmap = gdk_pixmap_new(widget->window,
