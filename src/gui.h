@@ -39,7 +39,7 @@
 struct gui_params {
 	GtkWidget *window;
 	GtkWidget *drawing_area;
-	stack *states;
+	GtkWidget *fract;
 	unsigned select_orig_x;
 	unsigned select_orig_y;
 	bool do_select;

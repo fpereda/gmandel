@@ -29,60 +29,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdbool.h>
+#ifndef GMANDEL_GFRACT_H_
+#define GMANDEL_GFRACT_H_ 1
 
-#include <gtk/gtk.h>
+G_BEGIN_DECLS
 
-#include "gui_progress.h"
-#include "xfuncs.h"
+#define GMANDEL_TYPE_FRACT (gmandel_fract_get_type())
+#define GMANDEL_FRACT(obj) ( \
+	G_TYPE_CHECK_INSTANCE_CAST((obj), \
+	GMANDEL_TYPE_FRACT, \
+	GMandelFract))
+#define GMANDEL_FRACT_CLASS(obj) ( \
+	G_TYPE_CHECK_CLASS_CAST((obj), \
+	GMANDEL_FRACT, \
+	GMandelFractClass))
+#define GMANDEL_IS_FRACT(obj) ( \
+	G_TYPE_CHECK_INSTANCE_TYPE((obj), \
+	GMANDEL_TYPE_FRACT))
+#define GMANDEL_IS_FRACT_CLASS(obj) ( \
+	G_TYPE_CHECK_CLASS_TYPE((obj), \
+	GMANDEL_TYPE_FRACT))
+#define GMANDEL_FRACT_GET_CLASS(obj) ( \
+	G_TYPE_INSTANCE_GET_CLASS((obj), \
+	GMANDEL_TYPE_FRACT, \
+	GMandelFractClass))
 
-static inline void gtk_events_flush(void)
-{
-	while (gtk_events_pending())
-		gtk_main_iteration();
-}
+typedef struct _GMandelFract GMandelFract;
+typedef struct _GMandelFractClass GMandelFractClass;
 
-struct gui_progress *gui_progress_with_parent(GtkWidget *parent, unsigned ticks)
-{
-	struct gui_progress* g = xmalloc(sizeof(*g));
-	g->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_transient_for(GTK_WINDOW(g->win), GTK_WINDOW(parent));
-	gtk_window_set_position(GTK_WINDOW(g->win),
-			GTK_WIN_POS_CENTER_ON_PARENT);
-	gtk_window_set_modal(GTK_WINDOW(g->win), TRUE);
-	gtk_window_set_decorated(GTK_WINDOW(g->win), FALSE);
-	gtk_window_set_skip_pager_hint(GTK_WINDOW(g->win), TRUE);
-	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(g->win), TRUE);
+struct _GMandelFract {
+	GtkDrawingArea parent_widget;
+	GtkWidget *parent;
+};
 
-	g->bar = gtk_progress_bar_new();
-	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(g->bar), "Computing");
-	gtk_container_add(GTK_CONTAINER(g->win), g->bar);
+struct _GMandelFractClass {
+	GtkDrawingAreaClass parent_class;
+};
 
-	gtk_widget_show_all(g->win);
-	g->step = 1.0L / ticks;
-	g->cur = 0;
-	g->active = true;
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(g->bar), 0);
-	gtk_events_flush();
+GtkWidget *gmandel_fract_new(GtkWidget *win);
 
-	return g;
-}
+void gmandel_fract_set_limits(GtkWidget *widget,
+		double ulx, double uly, double lly);
+void gmandel_fract_set_limits_default(GtkWidget *widget);
+void gmandel_fract_set_limits_box(GtkWidget *widget,
+		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 
-void gui_progress_tick(struct gui_progress *g)
-{
-	g->cur += g->step;
-	if (g->cur > 1.0L)
-		return;
-	snprintf(g->buf, sizeof(g->buf), "Computing %d %%", (int)(g->cur * 100));
-	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(g->bar), g->buf);
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(g->bar), g->cur);
-	gtk_events_flush();
-}
+void gmandel_fract_draw_box(GtkWidget *widget,
+		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 
-void gui_progress_end(struct gui_progress *g)
-{
-	g->active = false;
-	gtk_widget_hide_all(g->win);
-	free(g);
-	gtk_events_flush();
-}
+void gmandel_fract_clean(GtkWidget *widget);
+
+void gmandel_fract_history_clear(GtkWidget *widget);
+
+void gmandel_fract_compute(GtkWidget *widget);
+
+G_END_DECLS
+
+#endif

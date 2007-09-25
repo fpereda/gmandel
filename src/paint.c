@@ -201,14 +201,12 @@ static long double do_energyfactor(float lambda, float power)
 	return ret;
 }
 
-static void plot_points(void)
+static void plot_points(gmandel_mu_t **mupoint)
 {
 	static GdkGC *gc = NULL;
 
 	if (gc == NULL)
 		gc = gdk_gc_new(pixmap);
-
-	gmandel_mu_t **mupoint = mupoint_get_mupoint();
 
 	unsigned ticked = 0;
 
@@ -235,15 +233,13 @@ static void plot_points(void)
 	}
 }
 
-void paint_do_mu(unsigned begin, size_t n)
+void paint_do_mu(gmandel_mu_t **mupoint, unsigned begin, size_t n)
 {
 	long double x;
 	long double y;
 	long double acc = 0;
 	unsigned nacc = 0;
 	unsigned ticked = 0;
-
-	gmandel_mu_t **mupoint = mupoint_get_mupoint();
 
 	x = paint_limits.ulx + begin * paint_inc();
 	for (unsigned i = 0; i < n; i++) {

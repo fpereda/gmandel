@@ -139,7 +139,7 @@ bool gui_state_load(GtkWidget *window)
 #undef READ_VAR_DOUBLE
 
 	mandelbrot_set_maxit(maxit);
-	paint_set_limits(ulx, uly, lly);
+	// paint_set_limits(ulx, uly, lly);
 
 	gui_status_set("Correctly loaded current state %s", filename);
 
@@ -183,7 +183,7 @@ bool gui_state_save(GtkWidget *window)
 	}
 	unsigned int maxit = mandelbrot_get_maxit();
 	double ulx, uly, lly;
-	paint_get_limits(&ulx, &uly, &lly);
+	// paint_get_limits(&ulx, &uly, &lly);
 	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
 	fclose(file);
 

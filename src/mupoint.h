@@ -34,20 +34,20 @@
 
 typedef long double gmandel_mu_t;
 
-gmandel_mu_t **mupoint_get_mupoint(void);
-void mupoint_set_mupoint(gmandel_mu_t **m);
+struct mupoint {
+	gmandel_mu_t **mu;
+	unsigned width;
+	unsigned height;
+};
 
-void mupoint_set_size(unsigned w, unsigned h);
-void mupoint_get_size(unsigned *w, unsigned *h);
+void mupoint_clean_col(struct mupoint *m, unsigned i);
+void mupoint_clean(struct mupoint *m);
 
-void mupoint_clean_col(unsigned i);
-void mupoint_clean(void);
+void mupoint_create_as_needed(struct mupoint *m, unsigned w, unsigned h);
 
-void mupoint_create_as_needed(unsigned w, unsigned h);
-
-void mupoint_move_up(void);
-void mupoint_move_down(void);
-void mupoint_move_right(void);
-void mupoint_move_left(void);
+void mupoint_move_up(struct mupoint *m);
+void mupoint_move_down(struct mupoint *m);
+void mupoint_move_right(struct mupoint *m);
+void mupoint_move_left(struct mupoint *m);
 
 #endif

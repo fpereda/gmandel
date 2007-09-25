@@ -42,7 +42,7 @@ void gui_save_screenshot(GtkWidget *widget)
 {
 	unsigned width;
 	unsigned height;
-	paint_get_window_size(&width, &height);
+	// paint_get_window_size(&width, &height);
 
 	gchar *filename = g_strdup_printf("gmandel_%ld.png", time(NULL));
 
@@ -69,7 +69,7 @@ void gui_save_current(GtkWidget *window)
 {
 	unsigned width;
 	unsigned height;
-	paint_get_window_size(&width, &height);
+	// paint_get_window_size(&width, &height);
 
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
 			"Save current image", GTK_WINDOW(window),
@@ -101,7 +101,7 @@ void gui_save_current(GtkWidget *window)
 		format = "png";
 
 	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
-			NULL, paint_get_pixmap(), NULL, 0, 0, 0, 0, width, height);
+			NULL, /* paint_get_pixmap() */ NULL, NULL, 0, 0, 0, 0, width, height);
 
 	GError *err = NULL;
 	if (!gdk_pixbuf_save(buf, filename, format, &err, NULL)) {

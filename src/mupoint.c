@@ -34,89 +34,62 @@
 #include "mupoint.h"
 #include "xfuncs.h"
 
-static gmandel_mu_t **mupoint;
-static unsigned width;
-static unsigned height;
-
-gmandel_mu_t **mupoint_get_mupoint(void)
+void mupoint_clean_col(struct mupoint *m, unsigned i)
 {
-	return mupoint;
+	for (unsigned j = 0; j < m->height; j++)
+		m->mu[i][j] = -1L;
 }
 
-void mupoint_set_mupoint(gmandel_mu_t **m)
+void mupoint_clean(struct mupoint *m)
 {
-	mupoint = m;
+	for (unsigned i = 0; i < m->width; i++)
+		mupoint_clean_col(m, i);
 }
 
-void mupoint_set_size(unsigned w, unsigned h)
+void mupoint_create_as_needed(struct mupoint *m, unsigned w, unsigned h)
 {
-	width = w;
-	height = h;
-}
-
-void mupoint_get_size(unsigned *w, unsigned *h)
-{
-	if (w)
-		*w = width;
-	if (h)
-		*h = height;
-}
-
-void mupoint_clean_col(unsigned i)
-{
-	for (unsigned j = 0; j < height; j++)
-		mupoint[i][j] = -1L;
-}
-
-void mupoint_clean(void)
-{
-	for (unsigned i = 0; i < width; i++)
-		mupoint_clean_col(i);
-}
-
-void mupoint_create_as_needed(unsigned w, unsigned h)
-{
-	if (!mupoint) {
-		mupoint_set_size(w, h);
-		mupoint = xmalloc(width * sizeof(*mupoint));
-		for (unsigned i = 0; i < width; i++)
-			mupoint[i] = xmalloc(height * sizeof(**mupoint));
-		mupoint_clean();
+	if (!m->mu) {
+		m->width = w;
+		m->height = h;
+		m->mu = xmalloc(m->width * sizeof(*m->mu));
+		for (unsigned i = 0; i < m->width; i++)
+			m->mu[i] = xmalloc(m->height * sizeof(**m->mu));
+		mupoint_clean(m);
 	}
 }
 
-void mupoint_move_up(void)
+void mupoint_move_up(struct mupoint *m)
 {
-	size_t num = (height - 1) * sizeof(**mupoint);
-	for (unsigned i = 0; i < width; i++) {
-		memmove(&mupoint[i][1], &mupoint[i][0], num);
-		mupoint[i][0] = -1L;
+	size_t num = (m->height - 1) * sizeof(**m->mu);
+	for (unsigned i = 0; i < m->width; i++) {
+		memmove(&m->mu[i][1], &m->mu[i][0], num);
+		m->mu[i][0] = -1L;
 	}
 }
 
-void mupoint_move_down(void)
+void mupoint_move_down(struct mupoint *m)
 {
-	size_t num = (height - 1) * sizeof(**mupoint);
-	for (unsigned i = 0; i < width; i++) {
-		memmove(&mupoint[i][0], &mupoint[i][1], num);
-		mupoint[i][height - 1] = -1L;
+	size_t num = (m->height - 1) * sizeof(**m->mu);
+	for (unsigned i = 0; i < m->width; i++) {
+		memmove(&m->mu[i][0], &m->mu[i][1], num);
+		m->mu[i][m->height - 1] = -1L;
 	}
 }
 
-void mupoint_move_right(void)
+void mupoint_move_right(struct mupoint *m)
 {
-	size_t num = (width - 1) * sizeof(*mupoint);
-	void *p = mupoint[0];
-	memmove(&mupoint[0], &mupoint[1], num);
-	mupoint[width - 1] = p;
-	mupoint_clean_col(width - 1);
+	size_t num = (m->width - 1) * sizeof(*m->mu);
+	void *p = m->mu[0];
+	memmove(&m->mu[0], &m->mu[1], num);
+	m->mu[m->width - 1] = p;
+	mupoint_clean_col(m, m->width - 1);
 }
 
-void mupoint_move_left(void)
+void mupoint_move_left(struct mupoint *m)
 {
-	size_t num = (width - 1) * sizeof(*mupoint);
-	void *p = mupoint[width - 1];
-	memmove(&mupoint[1], &mupoint[0], num);
-	mupoint[0] = p;
-	mupoint_clean_col(0);
+	size_t num = (m->width - 1) * sizeof(*m->mu);
+	void *p = m->mu[m->width - 1];
+	memmove(&m->mu[1], &m->mu[0], num);
+	m->mu[0] = p;
+	mupoint_clean_col(m, 0);
 }

@@ -41,6 +41,7 @@
 #include "gui_save.h"
 #include "gui_actions.h"
 #include "gui_state.h"
+#include "gfract.h"
 
 void handle_savestate(GtkAction *action, gpointer data)
 {
@@ -53,9 +54,11 @@ void handle_loadstate(GtkAction *action, gpointer data)
 	struct gui_params *gui = data;
 	if (!gui_state_load(gui->window))
 		return;
+#if 0
 	while (!stack_empty(gui->states))
 		gui->states->destroy(stack_pop(gui->states));
-	paint_force_redraw(gui->drawing_area, true);
+	// paint_force_redraw(gui->drawing_area, true);
+#endif
 }
 
 void handle_save(GtkAction *action, gpointer data)
@@ -67,22 +70,21 @@ void handle_save(GtkAction *action, gpointer data)
 void handle_restart(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	paint_set_limits_default();
-	while (!stack_empty(gui->states))
-		gui->states->destroy(stack_pop(gui->states));
-	paint_force_redraw(gui->drawing_area, true);
+	gmandel_fract_set_limits_default(gui->fract);
+	gmandel_fract_history_clear(gui->fract);
+	gmandel_fract_compute(gui->fract);
 }
 
 void handle_recompute(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	paint_force_redraw(gui->drawing_area, true);
+	// paint_force_redraw(gui->drawing_area, true);
 }
 
 void toggle_orbits(GtkToggleAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	paint_clean_mandel(gui->drawing_area);
+	// paint_clean_mandel(gui->drawing_area);
 	gui->do_orbits = !gui->do_orbits;
 }
 
@@ -95,7 +97,7 @@ void theme_changed(
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
 			color_set_current(i);
-	paint_force_redraw(gui->drawing_area, false);
+	// paint_force_redraw(gui->drawing_area, false);
 }
 
 void handle_about(GtkAction *action, gpointer data)

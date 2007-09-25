@@ -46,6 +46,8 @@
 #include "gui_menu.h"
 #include "gui_status.h"
 
+#include "gfract.h"
+
 int main(int argc, char *argv[])
 {
 	unsigned width;
@@ -53,16 +55,21 @@ int main(int argc, char *argv[])
 	if (argc == 3) {
 		width = atoi(argv[1]);
 		height = atoi(argv[2]);
-		paint_set_window_size(width, height);
-	} else
-		paint_get_window_size(&width, &height);
+		// paint_set_window_size(width, height);
+	} else {
+		width = 900;
+		height = 600;
+		//paint_get_window_size(&width, &height);
+	}
 
 	struct gui_params gui_state = {
 		.do_orbits = false,
 		.do_select = false,
 	};
 
-	gui_state.states = stack_alloc_init(free);
+	g_thread_init(NULL);
+	gdk_threads_init();
+	gdk_threads_enter();
 
 	gtk_init(&argc, &argv);
 
@@ -74,9 +81,12 @@ int main(int argc, char *argv[])
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
 	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
+	/*
 	g_signal_connect(window, "key-press-event",
 			G_CALLBACK(handle_keypress), &gui_state);
+	*/
 
+#if 0
 	gui_state.drawing_area = gtk_drawing_area_new();
 	GtkWidget *drawing_area = gui_state.drawing_area;
 	gtk_widget_set_size_request(drawing_area, width, height);
@@ -93,22 +103,23 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_release), &gui_state);
 	g_signal_connect(drawing_area, "motion-notify-event",
 			G_CALLBACK(handle_motion), &gui_state);
+#endif
+
+	gui_state.fract = gmandel_fract_new(window);
+	gtk_widget_set_size_request(gui_state.fract, width, height);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(lyout_top),
 			gui_menu_build(window, &gui_state), FALSE, FALSE, 0);
-	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), drawing_area);
+	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), gui_state.fract);
 	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), gui_status_build());
 
 	gtk_container_add(GTK_CONTAINER(window), lyout_top);
 
-	gui_progress_set_parent(window);
-
 	gtk_widget_show_all(window);
 	gtk_main();
 
-	if (gui_state.states)
-		stack_destroy(gui_state.states);
+	gdk_threads_leave();
 
 	return EXIT_SUCCESS;
 }

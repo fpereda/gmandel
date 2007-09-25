@@ -9,9 +9,9 @@ bin_PROGRAMS = gmandel
 
 gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   color.c color.h \
+                  gfract.c gfract.h \
                   gui_about.c gui_about.h \
                   gui_actions.c gui_actions.h \
-                  gui_callbacks.c gui_callbacks.h \
                   gui_menu.c gui_menu.h \
                   gui_progress.c gui_progress.h \
                   gui_report.c gui_report.h \
@@ -19,11 +19,11 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   gui_state.c gui_state.h \
                   gui_status.c gui_status.h \
                   mandelbrot.c mandelbrot.h \
+                  color_filter.c color_filter.h \
                   mupoint.c mupoint.h \
-                  paint.c paint.h \
                   stack.c stack.h \
                   parallel_paint.h
-gmandel_LDADD = $(gtk_LIBS) -lm
+gmandel_LDADD = $(gtk_LIBS) -lm -lgthread-2.0
 
 if ENABLE_THREADS
 

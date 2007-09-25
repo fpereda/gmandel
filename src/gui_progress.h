@@ -36,10 +36,17 @@
 
 #include <gtk/gtk.h>
 
-void gui_progress_set_parent(GtkWidget *w);
-void gui_progress_begin(unsigned ticks);
-void gui_progress_tick(void);
-void gui_progress_end(void);
-bool gui_progress_active(void);
+struct gui_progress {
+	GtkWidget *win;
+	GtkWidget *bar;
+	gdouble step;
+	gdouble cur;
+	bool active;
+	char buf[20];
+};
+
+struct gui_progress *gui_progress_with_parent(GtkWidget *w, unsigned ticks);
+void gui_progress_tick(struct gui_progress *g);
+void gui_progress_end(struct gui_progress *g);
 
 #endif
