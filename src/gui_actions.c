@@ -59,8 +59,7 @@ void handle_loadstate(GtkAction *action, gpointer data)
 
 void handle_save(GtkAction *action, gpointer data)
 {
-	struct gui_params *gui = data;
-	gui_save_current(gui->window);
+	gui_save_current(data);
 }
 
 void handle_restart(GtkAction *action, gpointer data)
@@ -104,6 +103,5 @@ void handle_about(GtkAction *action, gpointer data)
 
 void handle_screenshot(gpointer data)
 {
-	struct gui_params *gui = data;
-	gui_save_screenshot(gui->drawing_area);
+	gui_save_screenshot(data);
 }

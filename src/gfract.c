@@ -612,3 +612,11 @@ void gfract_mandel_move_left(GtkWidget *widget, guint n)
 	while (n--)
 		mupoint_move_left(&priv->mupoint);
 }
+
+GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	return gdk_pixbuf_get_from_drawable(NULL,
+			priv->onscreen, NULL, 0, 0, 0, 0,
+			widget->allocation.width, widget->allocation.height);
+}

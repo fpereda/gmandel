@@ -34,7 +34,9 @@
 
 #include <gtk/gtk.h>
 
-void gui_save_current(GtkWidget *window);
-void gui_save_screenshot(GtkWidget *window);
+#include "gui.h"
+
+void gui_save_current(struct gui_params *gui);
+void gui_save_screenshot(struct gui_params *gui);
 
 #endif

@@ -36,18 +36,17 @@
 
 #include "gui_save.h"
 #include "gui_status.h"
-#include "paint.h"
+#include "gfract.h"
 
-void gui_save_screenshot(GtkWidget *widget)
+void gui_save_screenshot(struct gui_params *gui)
 {
-	unsigned width;
-	unsigned height;
-	// paint_get_window_size(&width, &height);
+	unsigned width = gui->fract->allocation.width;
+	unsigned height = gui->fract->allocation.height;
 
 	gchar *filename = g_strdup_printf("gmandel_%ld.png", time(NULL));
 
 	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
-			NULL, widget->window, NULL, 0, 0, 0, 0, width, height);
+			NULL, gui->fract->window, NULL, 0, 0, 0, 0, width, height);
 
 	GError *err = NULL;
 	if (!gdk_pixbuf_save(buf, filename, "png", &err, NULL)) {
@@ -65,14 +64,10 @@ cleanup:
 	g_free(filename);
 }
 
-void gui_save_current(GtkWidget *window)
+void gui_save_current(struct gui_params *gui)
 {
-	unsigned width;
-	unsigned height;
-	// paint_get_window_size(&width, &height);
-
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
-			"Save current image", GTK_WINDOW(window),
+			"Save current image", GTK_WINDOW(gui->window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
@@ -100,8 +95,7 @@ void gui_save_current(GtkWidget *window)
 			&& strcmp(format, "bmp") != 0)
 		format = "png";
 
-	GdkPixbuf *buf = gdk_pixbuf_get_from_drawable(
-			NULL, /* paint_get_pixmap() */ NULL, NULL, 0, 0, 0, 0, width, height);
+	GdkPixbuf *buf = gfract_mandel_get_pixbuf(gui->fract);
 
 	GError *err = NULL;
 	if (!gdk_pixbuf_save(buf, filename, format, &err, NULL)) {

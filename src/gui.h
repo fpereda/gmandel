@@ -32,6 +32,8 @@
 #ifndef GMANDEL_GUI_H_
 #define GMANDEL_GUI_H_ 1
 
+#include <stdbool.h>
+
 #include <gtk/gtk.h>
 
 #include "stack.h"

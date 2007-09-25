@@ -96,6 +96,8 @@ void gfract_mandel_move_down(GtkWidget *widget, guint n);
 void gfract_mandel_move_right(GtkWidget *widget, guint n);
 void gfract_mandel_move_left(GtkWidget *widget, guint n);
 
+GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget);
+
 G_END_DECLS
 
 #endif
