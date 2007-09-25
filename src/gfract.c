@@ -209,6 +209,14 @@ void gfract_mandel_compute(GtkWidget *widget)
 	g_thread_create(threaded_mandel, widget, FALSE, NULL);
 }
 
+void gfract_mandel_compute_partial(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->avgfactor.v = 0;
+	priv->avgfactor.n = 0;
+	g_thread_create(threaded_mandel, widget, FALSE, NULL);
+}
+
 void gfract_mandel_redraw(GtkWidget *widget)
 {
 	g_thread_create(threaded_mandel, widget, FALSE, NULL);

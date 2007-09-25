@@ -87,7 +87,7 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-			gfract_mandel_compute(gui->fract);
+			gfract_mandel_compute_partial(gui->fract);
 			break;
 	}
 

@@ -87,6 +87,7 @@ void gfract_mandel_clean(GtkWidget *widget);
 void gfract_mandel_history_clear(GtkWidget *widget);
 
 void gfract_mandel_compute(GtkWidget *widget);
+void gfract_mandel_compute_partial(GtkWidget *widget);
 void gfract_mandel_redraw(GtkWidget *widget);
 
 gboolean gfract_mandel_select_get_active(GtkWidget *widget);
