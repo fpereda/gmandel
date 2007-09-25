@@ -38,10 +38,12 @@ struct orbit_point {
 };
 
 struct orbit_point *mandelbrot_orbit(
+		unsigned maxit,
 		long double *cx, long double *cy,
 		unsigned *n);
 
 unsigned mandelbrot_it(
+		unsigned maxit,
 		long double *cx, long double *cy,
 		long double *modulus);
 

@@ -78,6 +78,7 @@ struct _GFractMandelPrivate {
 	unsigned select_orig_x;
 	unsigned select_orig_y;
 	stack *states;
+	unsigned maxit;
 };
 
 static gboolean gfract_mandel_expose(GtkWidget *widget, GdkEventExpose *event);
@@ -168,6 +169,8 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 	priv->do_select = false;
 	priv->do_orbits = false;
 
+	priv->maxit = 1000;
+
 	priv->states = stack_alloc_init(free);
 
 	gtk_widget_add_events(ret, 0
@@ -183,6 +186,8 @@ void gfract_mandel_compute(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	mupoint_clean(&priv->mupoint);
+	priv->avgfactor.v = 0;
+	priv->avgfactor.n = 0;
 	g_thread_create(threaded_mandel, widget, FALSE, NULL);
 }
 
@@ -328,9 +333,6 @@ static gpointer threaded_mandel(gpointer data)
 	GtkWidget *widget = data;
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
-	priv->avgfactor.v = 0;
-	priv->avgfactor.n = 0;
-
 	unsigned width = widget->allocation.width;
 	unsigned ticks = width / 16 + width / 128;
 	priv->progress = gui_progress_with_parent(priv->win, ticks);
@@ -412,7 +414,7 @@ static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
 				goto inc_and_cont;
 
 			long double modulus;
-			unsigned it = mandelbrot_it(&x, &y, &modulus);
+			unsigned it = mandelbrot_it(priv->maxit, &x, &y, &modulus);
 
 			/* Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
@@ -542,6 +544,7 @@ gboolean gfract_mandel_orbits_get_active(GtkWidget *widget)
 
 void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
 {
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GdkGC *gc = gdk_gc_new(widget->window);
 	static GdkColor colors[] = {
 		{ .red = ~0, .green = 0, .blue = 0, },
@@ -554,7 +557,7 @@ void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
 	};
 
 	unsigned n;
-	struct orbit_point *o = mandelbrot_orbit(&x, &y, &n);
+	struct orbit_point *o = mandelbrot_orbit(priv->maxit, &x, &y, &n);
 
 	for (unsigned i = 0; i < n; i++) {
 		unsigned sx;
@@ -624,4 +627,21 @@ GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
 	return gdk_pixbuf_get_from_drawable(NULL,
 			priv->onscreen, NULL, 0, 0, 0, 0,
 			widget->allocation.width, widget->allocation.height);
+}
+
+void gfract_mandel_set_maxit(GtkWidget *widget, gulong maxit)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	if (maxit <= 0)
+		priv->maxit = 10;
+	else if (maxit > UINT_MAX)
+		priv->maxit = UINT_MAX;
+	else
+		priv->maxit = maxit;
+}
+
+guint gfract_mandel_get_maxit(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	return priv->maxit;
 }

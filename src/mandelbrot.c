@@ -29,29 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <limits.h>
 #include <stdbool.h>
 #include <math.h>
 
 #include "mandelbrot.h"
 #include "xfuncs.h"
-
-static unsigned maxit = 1000;
-
-void mandelbrot_set_maxit(long n)
-{
-	if (n <= 0)
-		maxit = 10;
-	else if (n > UINT_MAX)
-		maxit = UINT_MAX;
-	else
-		maxit = n;
-}
-
-unsigned mandelbrot_get_maxit(void)
-{
-	return maxit;
-}
 
 static inline bool mandelbrot_in_biggest_mu_atom(
 		long double x, long double y,
@@ -81,6 +63,7 @@ static inline bool mandelbrot_in_cardioid(
 }
 
 struct orbit_point *mandelbrot_orbit(
+		unsigned maxit,
 		long double *cx, long double *cy,
 		unsigned *n)
 {
@@ -119,6 +102,7 @@ struct orbit_point *mandelbrot_orbit(
 }
 
 unsigned mandelbrot_it(
+		unsigned maxit,
 		long double *cx, long double *cy,
 		long double *modulus)
 {

@@ -138,7 +138,7 @@ bool gui_state_load(struct gui_params *gui)
 
 #undef READ_VAR_DOUBLE
 
-	mandelbrot_set_maxit(maxit);
+	gfract_mandel_set_maxit(gui->fract, maxit);
 	gfract_mandel_set_limits(gui->fract, ulx, uly, lly);
 
 	gui_status_set("Correctly loaded current state %s", filename);
@@ -181,7 +181,7 @@ bool gui_state_save(struct gui_params *gui)
 		err = true;
 		goto cleanup;
 	}
-	unsigned int maxit = mandelbrot_get_maxit();
+	unsigned int maxit = gfract_mandel_get_maxit(gui->fract);
 	double ulx, uly, lly;
 	gfract_mandel_get_limits(gui->fract, &ulx, &uly, &lly);
 	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
