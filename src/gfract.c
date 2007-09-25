@@ -439,6 +439,18 @@ void gfract_mandel_history_clear(GtkWidget *widget)
 		priv->states->destroy(stack_pop(priv->states));
 }
 
+void gfract_mandel_get_limits(GtkWidget *widget,
+		gdouble *ulx, gdouble *uly, gdouble *lly)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	if (ulx)
+		*ulx = priv->paint_limits.ulx;
+	if (uly)
+		*uly = priv->paint_limits.uly;
+	if (lly)
+		*lly = priv->paint_limits.lly;
+}
+
 void gfract_mandel_set_limits_default(GtkWidget *widget)
 {
 	gfract_mandel_set_limits(widget,

@@ -40,6 +40,7 @@
 #include "gui.h"
 #include "gui_report.h"
 #include "gui_status.h"
+#include "gfract.h"
 
 static bool gmandel_strtoul(
 		GtkWidget *window, const char *var,
@@ -89,13 +90,13 @@ static bool gmandel_strtod(
 	return !err;
 }
 
-bool gui_state_load(GtkWidget *window)
+bool gui_state_load(struct gui_params *gui)
 {
 	char *filename = NULL;
 	bool err = true;
 
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
-			"Load a state",	GTK_WINDOW(window),
+			"Load a state",	GTK_WINDOW(gui->window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
@@ -111,7 +112,7 @@ bool gui_state_load(GtkWidget *window)
 
 	FILE *file = fopen(filename, "r");
 	if (file == NULL) {
-		gui_report_error(window, "Error loading the state file '%s': %s",
+		gui_report_error(gui->window, "Error loading the state file '%s': %s",
 				filename, g_strerror(errno));
 		goto cleanup;
 	}
@@ -123,12 +124,12 @@ bool gui_state_load(GtkWidget *window)
 	double lly;
 
 	fgets(buf, sizeof(buf), file);
-	if ((err = !gmandel_strtoul(window, "maxit", buf, &maxit)))
+	if ((err = !gmandel_strtoul(gui->window, "maxit", buf, &maxit)))
 		goto bad_file;
 
 #define READ_VAR_DOUBLE(a) do { \
 	fgets(buf, sizeof(buf), file); \
-	if ((err = !gmandel_strtod(window, #a, buf, &(a)))) \
+	if ((err = !gmandel_strtod(gui->window, #a, buf, &(a)))) \
 		goto bad_file; \
 } while (0);
 
@@ -139,7 +140,7 @@ bool gui_state_load(GtkWidget *window)
 #undef READ_VAR_DOUBLE
 
 	mandelbrot_set_maxit(maxit);
-	// paint_set_limits(ulx, uly, lly);
+	gfract_mandel_set_limits(gui->fract, ulx, uly, lly);
 
 	gui_status_set("Correctly loaded current state %s", filename);
 
@@ -154,13 +155,13 @@ cleanup:
 	return !err;
 }
 
-bool gui_state_save(GtkWidget *window)
+bool gui_state_save(struct gui_params *gui)
 {
 	char *filename = NULL;
 	bool err = false;
 
 	GtkWidget *fc = gtk_file_chooser_dialog_new(
-			"Save the state", GTK_WINDOW(window),
+			"Save the state", GTK_WINDOW(gui->window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
@@ -175,7 +176,7 @@ bool gui_state_save(GtkWidget *window)
 
 	FILE *file = fopen(filename, "w");
 	if (file == NULL) {
-		gui_report_error(window, "Error saving the state file '%s': %s\n",
+		gui_report_error(gui->window, "Error saving the state file '%s': %s\n",
 				filename, g_strerror(errno));
 		gui_status_set("Error when saving the state file");
 		err = true;
@@ -183,7 +184,7 @@ bool gui_state_save(GtkWidget *window)
 	}
 	unsigned int maxit = mandelbrot_get_maxit();
 	double ulx, uly, lly;
-	// paint_get_limits(&ulx, &uly, &lly);
+	gfract_mandel_get_limits(gui->fract, &ulx, &uly, &lly);
 	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
 	fclose(file);
 

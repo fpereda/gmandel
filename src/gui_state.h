@@ -34,7 +34,9 @@
 
 #include <gtk/gtk.h>
 
-bool gui_state_load(GtkWidget *window);
-bool gui_state_save(GtkWidget *window);
+#include "gui.h"
+
+bool gui_state_load(struct gui_params *gui);
+bool gui_state_save(struct gui_params *gui);
 
 #endif
