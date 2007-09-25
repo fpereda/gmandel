@@ -161,9 +161,12 @@ static void gfract_mandel_finalize(GObject *object)
 {
 	GtkWidget *widget = GTK_WIDGET(object);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+
 	g_object_unref(priv->onscreen);
 	g_object_unref(priv->draw);
 	stack_destroy(priv->states);
+
+	G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
 
 GtkWidget *gfract_mandel_new(GtkWidget *win)
