@@ -70,9 +70,9 @@ void handle_save(GtkAction *action, gpointer data)
 void handle_restart(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	gmandel_fract_set_limits_default(gui->fract);
-	gmandel_fract_history_clear(gui->fract);
-	gmandel_fract_compute(gui->fract);
+	gfract_mandel_set_limits_default(gui->fract);
+	gfract_mandel_history_clear(gui->fract);
+	gfract_mandel_compute(gui->fract);
 }
 
 void handle_recompute(GtkAction *action, gpointer data)

@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_motion), &gui_state);
 #endif
 
-	gui_state.fract = gmandel_fract_new(window);
+	gui_state.fract = gfract_mandel_new(window);
 	gtk_widget_set_size_request(gui_state.fract, width, height);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);

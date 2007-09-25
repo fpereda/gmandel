@@ -34,15 +34,15 @@
 
 G_BEGIN_DECLS
 
-#define GMANDEL_TYPE_FRACT (gmandel_fract_get_type())
+#define GMANDEL_TYPE_FRACT (gfract_mandel_get_type())
 #define GMANDEL_FRACT(obj) ( \
 	G_TYPE_CHECK_INSTANCE_CAST((obj), \
 	GMANDEL_TYPE_FRACT, \
-	GMandelFract))
+	GFractMandel))
 #define GMANDEL_FRACT_CLASS(obj) ( \
 	G_TYPE_CHECK_CLASS_CAST((obj), \
 	GMANDEL_FRACT, \
-	GMandelFractClass))
+	GFractMandelClass))
 #define GMANDEL_IS_FRACT(obj) ( \
 	G_TYPE_CHECK_INSTANCE_TYPE((obj), \
 	GMANDEL_TYPE_FRACT))
@@ -52,36 +52,36 @@ G_BEGIN_DECLS
 #define GMANDEL_FRACT_GET_CLASS(obj) ( \
 	G_TYPE_INSTANCE_GET_CLASS((obj), \
 	GMANDEL_TYPE_FRACT, \
-	GMandelFractClass))
+	GFractMandelClass))
 
-typedef struct _GMandelFract GMandelFract;
-typedef struct _GMandelFractClass GMandelFractClass;
+typedef struct _GFractMandel GFractMandel;
+typedef struct _GFractMandelClass GFractMandelClass;
 
-struct _GMandelFract {
+struct _GFractMandel {
 	GtkDrawingArea parent_widget;
 	GtkWidget *parent;
 };
 
-struct _GMandelFractClass {
+struct _GFractMandelClass {
 	GtkDrawingAreaClass parent_class;
 };
 
-GtkWidget *gmandel_fract_new(GtkWidget *win);
+GtkWidget *gfract_mandel_new(GtkWidget *win);
 
-void gmandel_fract_set_limits(GtkWidget *widget,
+void gfract_mandel_set_limits(GtkWidget *widget,
 		double ulx, double uly, double lly);
-void gmandel_fract_set_limits_default(GtkWidget *widget);
-void gmandel_fract_set_limits_box(GtkWidget *widget,
+void gfract_mandel_set_limits_default(GtkWidget *widget);
+void gfract_mandel_set_limits_box(GtkWidget *widget,
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 
-void gmandel_fract_draw_box(GtkWidget *widget,
+void gfract_mandel_draw_box(GtkWidget *widget,
 		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
 
-void gmandel_fract_clean(GtkWidget *widget);
+void gfract_mandel_clean(GtkWidget *widget);
 
-void gmandel_fract_history_clear(GtkWidget *widget);
+void gfract_mandel_history_clear(GtkWidget *widget);
 
-void gmandel_fract_compute(GtkWidget *widget);
+void gfract_mandel_compute(GtkWidget *widget);
 
 G_END_DECLS
 
