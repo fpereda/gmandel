@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
 
 	gui_state.fract = gfract_mandel_new(window);
 	gtk_widget_set_size_request(gui_state.fract, width, height);
+	g_signal_connect(gui_state.fract, "button-press-event",
+			G_CALLBACK(handle_click), NULL);
 
 	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(lyout_top),

@@ -20,6 +20,7 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   gui_status.c gui_status.h \
                   mandelbrot.c mandelbrot.h \
                   color_filter.c color_filter.h \
+                  gui_callbacks.c gui_callbacks.h \
                   mupoint.c mupoint.h \
                   stack.c stack.h \
                   parallel_paint.h

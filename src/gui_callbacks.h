@@ -35,11 +35,7 @@
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data);
-gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data);
-gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data);
-gboolean handle_release(
-		GtkWidget *widget, GdkEventButton *event, gpointer data);
+gboolean handle_click(GtkWidget *widget, GdkEventButton *event);
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data);
 
 #endif

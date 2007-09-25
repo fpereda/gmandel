@@ -41,107 +41,23 @@
 #include "gui_progress.h"
 #include "gui_status.h"
 #include "gui_callbacks.h"
+#include "gfract.h"
 
-gboolean handle_expose(GtkWidget *widget, GdkEventExpose *event, gpointer data)
+gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 {
-	static stack *pending = NULL;
-	if (!pending)
-		pending = stack_alloc_init(NULL);
-	if (gui_progress_active()) {
-		GdkEvent *e = gtk_get_current_event();
-		stack_push(pending, e);
-		return FALSE;
-	}
-	paint_mandel_region(widget, event->region, false);
-	while (!stack_empty(pending)) {
-		GdkEvent *e = stack_pop(pending);
-		gtk_main_do_event(e);
-		gdk_event_free(e);
-	}
-	return FALSE;
-}
-
-gboolean handle_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
-{
-	struct gui_params *gui = data;
-	if (!gui->do_orbits && !gui->do_select)
+	if (event->button != 2)
 		return FALSE;
 
-	paint_clean_mandel(gui->drawing_area);
+	GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
+	gtk_toggle_action_set_active(orbits_action,
+			! gtk_toggle_action_get_active(orbits_action));
 
-	if (gui->do_orbits)
-		paint_orbit_pixel(widget, event->x, event->y);
-	else if (gui->do_select)
-		paint_box(widget,
-				gui->select_orig_x, gui->select_orig_y,
-				event->x, event->y);
-
-	/* we are done so ask for more events */
-	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);
-	return FALSE;
-}
-
-gboolean handle_click(GtkWidget *widget, GdkEventButton *event, gpointer data)
-{
-	struct gui_params *gui = data;
-	if (gui->do_select && event->button != 1) {
-		gui->do_select = false;
-		paint_clean_mandel(gui->drawing_area);
-		return FALSE;
-	}
-
-	if (gui->do_orbits && event->button != 2)
-		return FALSE;
-
-	if (event->button == 1) {
-		if (!gui->do_select) {
-			gui->select_orig_x = event->x;
-			gui->select_orig_y = event->y;
-			gui->do_select = true;
-			return FALSE;
-		}
-	} else if (event->button == 3) {
-		if (stack_empty(gui->states))
-			return FALSE;
-		paint_set_observer_state(stack_peek(gui->states));
-		gui->states->destroy(stack_pop(gui->states));
-	} else if (event->button == 2) {
-		GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
-		gtk_toggle_action_set_active(orbits_action,
-				! gtk_toggle_action_get_active(orbits_action));
-		return FALSE;
-	}
-
-	paint_force_redraw(widget, true);
+	gfract_mandel_clean(widget);
 
 	return FALSE;
 }
 
-gboolean handle_release(
-		GtkWidget *widget, GdkEventButton *event, gpointer data)
-{
-	struct gui_params *gui = data;
-	if (event->button != 1 || !gui->do_select)
-		return FALSE;
-	else if (gui->select_orig_y == event->y) {
-		gui->do_select = false;
-		paint_clean_mandel(gui->drawing_area);
-		return FALSE;
-	}
-
-	struct observer_state *cur = xmalloc(sizeof(*cur));
-	paint_get_observer_state(cur);
-	stack_push(gui->states, cur);
-
-	paint_set_box_limits(gui->select_orig_x, gui->select_orig_y,
-			event->x, event->y);
-	gui->do_select = false;
-
-	paint_force_redraw(widget, true);
-
-	return FALSE;
-}
-
+#if 0
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	struct gui_params *gui = data;
@@ -189,3 +105,4 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 
 	return FALSE;
 }
+#endif
