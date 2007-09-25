@@ -88,6 +88,11 @@ gboolean gfract_mandel_orbits_get_active(GtkWidget *widget);
 void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y);
 void gfract_mandel_draw_orbit_pixel(GtkWidget *widget, guint px, guint py);
 
+void gfract_mandel_move_up(GtkWidget *widget, guint n);
+void gfract_mandel_move_down(GtkWidget *widget, guint n);
+void gfract_mandel_move_right(GtkWidget *widget, guint n);
+void gfract_mandel_move_left(GtkWidget *widget, guint n);
+
 G_END_DECLS
 
 #endif

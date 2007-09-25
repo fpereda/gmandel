@@ -561,3 +561,37 @@ void gfract_mandel_draw_orbit_pixel(GtkWidget *widget, guint px, guint py)
 	pixel_to_point(widget, px, py, &x, &y);
 	gfract_mandel_draw_orbit(widget, x, y);
 }
+
+void gfract_mandel_move_up(GtkWidget *widget, guint n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->paint_limits.uly += n * paint_inc(widget);
+	priv->paint_limits.lly += n * paint_inc(widget);
+	while (n--)
+		mupoint_move_up(&priv->mupoint);
+}
+
+void gfract_mandel_move_down(GtkWidget *widget, guint n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->paint_limits.uly -= n * paint_inc(widget);
+	priv->paint_limits.lly -= n * paint_inc(widget);
+	while (n--)
+		mupoint_move_down(&priv->mupoint);
+}
+
+void gfract_mandel_move_right(GtkWidget *widget, guint n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->paint_limits.ulx += n * paint_inc(widget);
+	while (n--)
+		mupoint_move_right(&priv->mupoint);
+}
+
+void gfract_mandel_move_left(GtkWidget *widget, guint n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->paint_limits.ulx -= n *paint_inc(widget);
+	while (n--)
+		mupoint_move_left(&priv->mupoint);
+}
