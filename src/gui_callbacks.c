@@ -35,7 +35,6 @@
 
 #include "mandelbrot.h"
 #include "xfuncs.h"
-#include "paint.h"
 #include "gui.h"
 #include "gui_menu.h"
 #include "gui_progress.h"

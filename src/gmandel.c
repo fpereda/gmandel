@@ -37,7 +37,6 @@
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-#include "paint.h"
 #include "stack.h"
 #include "xfuncs.h"
 #include "gui.h"
@@ -63,8 +62,8 @@ int main(int argc, char *argv[])
 	}
 
 	struct gui_params gui_state = {
-		.do_orbits = false,
-		.do_select = false,
+		.window = NULL,
+		.fract = NULL,
 	};
 
 	g_thread_init(NULL);

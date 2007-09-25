@@ -79,25 +79,8 @@ AC_SUBST([GMANDEL_CFLAGS])
 dnl }}}
 
 dnl {{{ GTK+ and GDK
-PKG_CHECK_MODULES(gtk, [gtk+-2.0 >= 2.8.0])
-dnl }}}
-
-dnl {{{ threads
-AC_MSG_CHECKING([whether to enable threads])
-AC_ARG_ENABLE([threads],
-			  AS_HELP_STRING([--enable-threads], [Enable threads]),
-			  [ENABLE_THREADS=$enableval
-			   AC_MSG_RESULT([$enableval])],
-			  [ENABLE_THREADS=no
-			   AC_MSG_RESULT([no])])
-if test "x$ENABLE_THREADS" = "xyes" ; then
-	AC_CHECK_LIB(pthread, pthread_create)
-	AC_DEFINE([ENABLE_THREADS], [1], [Enable threaded calculations])
-else
-	AC_DEFINE([ENABLE_THREADS], [0])
-fi
-AC_SUBST([ENABLE_THREADS])
-AM_CONDITIONAL([ENABLE_THREADS], test "x$ENABLE_THREADS" = "xyes")
+PKG_CHECK_MODULES(gtk, [gtk+-2.0 >= 2.10.0])
+PKG_CHECK_MODULES(gthread, [gthread-2.0 >= 2.10.0])
 dnl }}}
 
 dnl Makefile generation

@@ -36,7 +36,6 @@
 #include <gtk/gtk.h>
 
 #include "mandelbrot.h"
-#include "paint.h"
 #include "gui.h"
 #include "gui_report.h"
 #include "gui_status.h"

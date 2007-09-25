@@ -38,7 +38,6 @@
 #include <gdk/gdk.h>
 
 #include "paint.h"
-#include "parallel_paint.h"
 #include "mandelbrot.h"
 #include "mupoint.h"
 #include "color.h"

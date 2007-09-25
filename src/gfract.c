@@ -36,7 +36,6 @@
 #include <gtk/gtk.h>
 
 #include "mandelbrot.h"
-#include "paint.h"
 #include "color_filter.h"
 #include "color.h"
 #include "mupoint.h"
@@ -48,6 +47,12 @@
 #define LIMITS_ULX_DEFAULT (-2.1)
 #define LIMITS_ULY_DEFAULT (1.1)
 #define LIMITS_LLY_DEFAULT (-1.1)
+
+struct observer_state {
+	double ulx;
+	double uly;
+	double lly;
+};
 
 G_DEFINE_TYPE(GFractMandel, gfract_mandel, GTK_TYPE_DRAWING_AREA);
 

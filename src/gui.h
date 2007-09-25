@@ -40,12 +40,7 @@
 
 struct gui_params {
 	GtkWidget *window;
-	GtkWidget *drawing_area;
 	GtkWidget *fract;
-	unsigned select_orig_x;
-	unsigned select_orig_y;
-	bool do_select;
-	bool do_orbits;
 };
 
 #endif

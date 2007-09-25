@@ -34,7 +34,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 
-#include "paint.h"
 #include "color.h"
 #include "gui.h"
 #include "gui_about.h"

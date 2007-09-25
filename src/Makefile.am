@@ -1,7 +1,8 @@
 CLEANFILES = *~
 MAINTAINERCLEANFILES = Makefile.in
 
-AM_CFLAGS = $(GMANDEL_CFLAGS) -D_XOPEN_SOURCE=600 $(gtk_CFLAGS)
+AM_CFLAGS = $(GMANDEL_CFLAGS) -D_XOPEN_SOURCE=600 \
+            $(gtk_CFLAGS) $(gthread_CFLAGS)
 
 SUBDIRS = .
 
@@ -22,15 +23,7 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   color_filter.c color_filter.h \
                   gui_callbacks.c gui_callbacks.h \
                   mupoint.c mupoint.h \
-                  stack.c stack.h \
-                  parallel_paint.h
-gmandel_LDADD = $(gtk_LIBS) -lm -lgthread-2.0
-
-if ENABLE_THREADS
-
-gmandel_SOURCES += parallel_paint.c
-gmandel_LDADD   += -lpthread
-
-endif
+                  stack.c stack.h
+gmandel_LDADD = $(gtk_LIBS) $(gthread_LIBS) -lm
 
 # vim: set et:
