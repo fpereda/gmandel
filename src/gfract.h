@@ -82,6 +82,7 @@ void gfract_mandel_clean(GtkWidget *widget);
 void gfract_mandel_history_clear(GtkWidget *widget);
 
 void gfract_mandel_compute(GtkWidget *widget);
+void gfract_mandel_redraw(GtkWidget *widget);
 
 void gfract_mandel_orbits_set_active(GtkWidget *widget, gboolean active);
 gboolean gfract_mandel_orbits_get_active(GtkWidget *widget);

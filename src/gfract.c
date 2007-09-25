@@ -181,6 +181,11 @@ void gfract_mandel_compute(GtkWidget *widget)
 	g_thread_create(threaded_mandel, widget, FALSE, NULL);
 }
 
+void gfract_mandel_redraw(GtkWidget *widget)
+{
+	g_thread_create(threaded_mandel, widget, FALSE, NULL);
+}
+
 static gboolean
 gfract_mandel_button_press(GtkWidget *widget, GdkEventButton *event)
 {

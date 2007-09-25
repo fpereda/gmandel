@@ -78,7 +78,7 @@ void handle_restart(GtkAction *action, gpointer data)
 void handle_recompute(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	// paint_force_redraw(gui->drawing_area, true);
+	gfract_mandel_compute(gui->fract);
 }
 
 void toggle_orbits(GtkToggleAction *action, gpointer data)
@@ -97,7 +97,7 @@ void theme_changed(
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
 			color_set_current(i);
-	// paint_force_redraw(gui->drawing_area, false);
+	gfract_mandel_redraw(gui->fract);
 }
 
 void handle_about(GtkAction *action, gpointer data)
