@@ -35,13 +35,13 @@
 G_BEGIN_DECLS
 
 #define GMANDEL_TYPE_FRACT (gfract_mandel_get_type())
-#define GMANDEL_FRACT(obj) ( \
+#define GFRACT_MANDEL(obj) ( \
 	G_TYPE_CHECK_INSTANCE_CAST((obj), \
 	GMANDEL_TYPE_FRACT, \
 	GFractMandel))
-#define GMANDEL_FRACT_CLASS(obj) ( \
+#define GFRACT_MANDEL_CLASS(obj) ( \
 	G_TYPE_CHECK_CLASS_CAST((obj), \
-	GMANDEL_FRACT, \
+	GFRACT_MANDEL, \
 	GFractMandelClass))
 #define GMANDEL_IS_FRACT(obj) ( \
 	G_TYPE_CHECK_INSTANCE_TYPE((obj), \
@@ -49,7 +49,7 @@ G_BEGIN_DECLS
 #define GMANDEL_IS_FRACT_CLASS(obj) ( \
 	G_TYPE_CHECK_CLASS_TYPE((obj), \
 	GMANDEL_TYPE_FRACT))
-#define GMANDEL_FRACT_GET_CLASS(obj) ( \
+#define GFRACT_MANDEL_GET_CLASS(obj) ( \
 	G_TYPE_INSTANCE_GET_CLASS((obj), \
 	GMANDEL_TYPE_FRACT, \
 	GFractMandelClass))
@@ -69,19 +69,24 @@ struct _GFractMandelClass {
 GtkWidget *gfract_mandel_new(GtkWidget *win);
 
 void gfract_mandel_set_limits(GtkWidget *widget,
-		double ulx, double uly, double lly);
+		gdouble ulx, gdouble uly, gdouble lly);
 void gfract_mandel_set_limits_default(GtkWidget *widget);
 void gfract_mandel_set_limits_box(GtkWidget *widget,
-		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
+		guint sx, guint sy, guint dx, guint dy);
 
 void gfract_mandel_draw_box(GtkWidget *widget,
-		unsigned sx, unsigned sy, unsigned dx, unsigned dy);
+		guint sx, guint sy, guint dx, guint dy);
 
 void gfract_mandel_clean(GtkWidget *widget);
 
 void gfract_mandel_history_clear(GtkWidget *widget);
 
 void gfract_mandel_compute(GtkWidget *widget);
+
+void gfract_mandel_orbits_set_active(GtkWidget *widget, gboolean active);
+gboolean gfract_mandel_orbits_get_active(GtkWidget *widget);
+void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y);
+void gfract_mandel_draw_orbit_pixel(GtkWidget *widget, guint px, guint py);
 
 G_END_DECLS
 

@@ -84,8 +84,8 @@ void handle_recompute(GtkAction *action, gpointer data)
 void toggle_orbits(GtkToggleAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	// paint_clean_mandel(gui->drawing_area);
-	gui->do_orbits = !gui->do_orbits;
+	gfract_mandel_orbits_set_active(gui->fract,
+			!gfract_mandel_orbits_get_active(gui->fract));
 }
 
 void theme_changed(
