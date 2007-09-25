@@ -75,6 +75,7 @@ struct _GFractMandelPrivate {
 	struct gui_progress *progress;
 	bool do_select;
 	bool do_orbits;
+	bool do_energy;
 	unsigned select_orig_x;
 	unsigned select_orig_y;
 	stack *states;
@@ -91,6 +92,7 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
 static gpointer threaded_mandel(gpointer data);
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void mandel_draw(GtkWidget *widget);
+static void mandel_doenergy(GtkWidget *widget);
 
 static inline long double paint_inc(GtkWidget *widget)
 {
@@ -168,6 +170,7 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 
 	priv->do_select = false;
 	priv->do_orbits = false;
+	priv->do_energy = false;
 
 	priv->maxit = 1000;
 
@@ -338,6 +341,11 @@ static gpointer threaded_mandel(gpointer data)
 	priv->progress = gui_progress_with_parent(priv->win, ticks);
 
 	mandel_do_mu(widget, 0, widget->allocation.width);
+
+	if (priv->do_energy)
+		mandel_doenergy(widget);
+	priv->do_energy = false;
+
 	mandel_draw(widget);
 
 	void *aux = priv->onscreen;
@@ -393,6 +401,22 @@ static void mandel_draw(GtkWidget *widget)
 	}
 
 	g_object_unref(gc);
+}
+
+static void mandel_doenergy(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->avgfactor.v = 0L;
+	priv->avgfactor.n = 0;
+	unsigned width = widget->allocation.width;
+	unsigned height = widget->allocation.height;
+	for (unsigned i = 0; i < width; i++)
+		for (unsigned j = 0; j < height; j++) {
+			if (priv->mupoint.mu[i][j] == 0)
+				continue;
+			priv->avgfactor.v += priv->mupoint.mu[i][j];
+			priv->avgfactor.n++;
+		}
 }
 
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
@@ -594,6 +618,7 @@ void gfract_mandel_move_up(GtkWidget *widget, guint n)
 	priv->paint_limits.lly += n * paint_inc(widget);
 	while (n--)
 		mupoint_move_up(&priv->mupoint);
+	priv->do_energy = true;
 }
 
 void gfract_mandel_move_down(GtkWidget *widget, guint n)
@@ -603,6 +628,7 @@ void gfract_mandel_move_down(GtkWidget *widget, guint n)
 	priv->paint_limits.lly -= n * paint_inc(widget);
 	while (n--)
 		mupoint_move_down(&priv->mupoint);
+	priv->do_energy = true;
 }
 
 void gfract_mandel_move_right(GtkWidget *widget, guint n)
@@ -611,6 +637,7 @@ void gfract_mandel_move_right(GtkWidget *widget, guint n)
 	priv->paint_limits.ulx += n * paint_inc(widget);
 	while (n--)
 		mupoint_move_right(&priv->mupoint);
+	priv->do_energy = true;
 }
 
 void gfract_mandel_move_left(GtkWidget *widget, guint n)
@@ -619,6 +646,7 @@ void gfract_mandel_move_left(GtkWidget *widget, guint n)
 	priv->paint_limits.ulx -= n *paint_inc(widget);
 	while (n--)
 		mupoint_move_left(&priv->mupoint);
+	priv->do_energy = true;
 }
 
 GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
