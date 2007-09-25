@@ -82,6 +82,7 @@ struct _GFractMandelPrivate {
 	unsigned maxit;
 };
 
+static void gfract_mandel_finalize(GObject *object);
 static gboolean gfract_mandel_expose(GtkWidget *widget, GdkEventExpose *event);
 static gboolean
 gfract_mandel_button_press(GtkWidget *widget, GdkEventButton *event);
@@ -140,6 +141,8 @@ static void gfract_mandel_class_init(GFractMandelClass *class)
 	GObjectClass *object_class = G_OBJECT_CLASS(class);
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 
+	object_class->finalize = gfract_mandel_finalize;
+
 	widget_class->expose_event = gfract_mandel_expose;
 	widget_class->configure_event = configure_fract;
 	widget_class->button_press_event = gfract_mandel_button_press;
@@ -152,6 +155,15 @@ static void gfract_mandel_class_init(GFractMandelClass *class)
 static void gfract_mandel_init(GFractMandel *fract)
 {
 	fract->parent = GTK_WIDGET(&fract->parent_widget);
+}
+
+static void gfract_mandel_finalize(GObject *object)
+{
+	GtkWidget *widget = GTK_WIDGET(object);
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	g_object_unref(priv->onscreen);
+	g_object_unref(priv->draw);
+	stack_destroy(priv->states);
 }
 
 GtkWidget *gfract_mandel_new(GtkWidget *win)
