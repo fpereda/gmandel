@@ -673,3 +673,15 @@ guint gfract_mandel_get_maxit(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return priv->maxit;
 }
+
+gboolean gfract_mandel_select_get_active(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	return priv->do_select;
+}
+
+void gfract_mandel_select_set_active(GtkWidget *widget, gboolean active)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->do_select = active;
+}

@@ -54,11 +54,9 @@ int main(int argc, char *argv[])
 	if (argc == 3) {
 		width = atoi(argv[1]);
 		height = atoi(argv[2]);
-		// paint_set_window_size(width, height);
 	} else {
 		width = 900;
 		height = 600;
-		//paint_get_window_size(&width, &height);
 	}
 
 	struct gui_params gui_state = {
@@ -80,29 +78,8 @@ int main(int argc, char *argv[])
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
 	gtk_widget_add_events(window, GDK_KEY_PRESS_MASK);
-	/*
 	g_signal_connect(window, "key-press-event",
 			G_CALLBACK(handle_keypress), &gui_state);
-	*/
-
-#if 0
-	gui_state.drawing_area = gtk_drawing_area_new();
-	GtkWidget *drawing_area = gui_state.drawing_area;
-	gtk_widget_set_size_request(drawing_area, width, height);
-	g_signal_connect(drawing_area, "expose-event",
-			G_CALLBACK(handle_expose), &gui_state);
-	gtk_widget_add_events(drawing_area, 0
-			| GDK_BUTTON_PRESS_MASK
-			| GDK_BUTTON_RELEASE_MASK
-			| GDK_POINTER_MOTION_MASK
-			| GDK_POINTER_MOTION_HINT_MASK);
-	g_signal_connect(drawing_area, "button-press-event",
-			G_CALLBACK(handle_click), &gui_state);
-	g_signal_connect(drawing_area, "button-release-event",
-			G_CALLBACK(handle_release), &gui_state);
-	g_signal_connect(drawing_area, "motion-notify-event",
-			G_CALLBACK(handle_motion), &gui_state);
-#endif
 
 	gui_state.fract = gfract_mandel_new(window);
 	gtk_widget_set_size_request(gui_state.fract, width, height);

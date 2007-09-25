@@ -56,11 +56,10 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 	return FALSE;
 }
 
-#if 0
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	struct gui_params *gui = data;
-	int nextmaxit = mandelbrot_get_maxit();
+	int nextmaxit = gfract_mandel_get_maxit(gui->fract);
 
 #define EVENT_KEYVAL_EITHER(a, b) \
 	(event->keyval == (a) || event->keyval == (b))
@@ -70,13 +69,13 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Subtract, GDK_minus))
 		nextmaxit -= 100;
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Up, GDK_Up))
-		paint_move_up(7);
+		gfract_mandel_move_up(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Down, GDK_Down))
-		paint_move_down(7);
+		gfract_mandel_move_down(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Left, GDK_Left))
-		paint_move_left(7);
+		gfract_mandel_move_left(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Right, GDK_Right))
-		paint_move_right(7);
+		gfract_mandel_move_right(gui->fract, 7);
 
 #undef EVENT_KEYVAL_EITHER
 
@@ -88,20 +87,20 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-			paint_force_redraw(gui->drawing_area, false);
+			gfract_mandel_compute(gui->fract);
 			break;
 	}
 
-	if (event->keyval == GDK_Escape && gui->do_select) {
-		gui->do_select = false;
-		paint_clean_mandel(gui->drawing_area);
+	if (event->keyval == GDK_Escape
+			&& gfract_mandel_select_get_active(gui->fract)) {
+		gfract_mandel_select_set_active(gui->fract, FALSE);
+		gfract_mandel_clean(gui->fract);
 	}
 
-	if (nextmaxit != mandelbrot_get_maxit()) {
-		mandelbrot_set_maxit(nextmaxit);
-		gui_status_set("maxit = %-6d", mandelbrot_get_maxit());
+	if (nextmaxit != gfract_mandel_get_maxit(gui->fract)) {
+		gfract_mandel_set_maxit(gui->fract, nextmaxit);
+		gui_status_set("maxit = %-6d", gfract_mandel_get_maxit(gui->fract));
 	}
 
 	return FALSE;
 }
-#endif
