@@ -300,7 +300,7 @@ static gboolean gfract_mandel_motion(GtkWidget *widget, GdkEventMotion *event)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
 	if (!priv->do_select && !priv->do_orbits)
-		return FALSE;
+		goto done;
 
 	gfract_mandel_clean(widget);
 
@@ -311,9 +311,10 @@ static gboolean gfract_mandel_motion(GtkWidget *widget, GdkEventMotion *event)
 	else if (priv->do_orbits)
 		gfract_mandel_draw_orbit_pixel(widget, event->x, event->y);
 
+done:
 	/* we are done so ask for more events */
 	gdk_window_get_pointer(widget->window, NULL, NULL, NULL);
-	return FALSE;
+	return TRUE;
 }
 
 static void gfract_mandel_expose_rect(GtkWidget *widget, GdkRectangle rect)
