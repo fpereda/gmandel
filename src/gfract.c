@@ -58,7 +58,7 @@ G_DEFINE_TYPE(GFractMandel, gfract_mandel, GTK_TYPE_DRAWING_AREA);
 
 #define GFRACT_MANDEL_GET_PRIVATE(obj) ( \
 	G_TYPE_INSTANCE_GET_PRIVATE((obj), \
-	GMANDEL_TYPE_FRACT, GFractMandelPrivate))
+	GFRACT_TYPE_MANDEL, GFractMandelPrivate))
 
 typedef struct _GFractMandelPrivate GFractMandelPrivate;
 
@@ -154,30 +154,14 @@ static void gfract_mandel_class_init(GFractMandelClass *class)
 
 static void gfract_mandel_init(GFractMandel *fract)
 {
-	fract->parent = GTK_WIDGET(&fract->parent_widget);
-}
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(fract);
 
-static void gfract_mandel_finalize(GObject *object)
-{
-	GtkWidget *widget = GTK_WIDGET(object);
-	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-
-	g_object_unref(priv->onscreen);
-	g_object_unref(priv->draw);
-	stack_destroy(priv->states);
-
-	G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
-}
-
-GtkWidget *gfract_mandel_new(GtkWidget *win)
-{
-	GtkWidget *ret = g_object_new(GMANDEL_TYPE_FRACT, NULL);
-	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
+	fract->parent_widget = GTK_WIDGET(&fract->parent);
 
 	priv->onscreen = NULL;
 	priv->draw = NULL;
 
-	priv->win = win;
+	priv->win = NULL;
 
 	priv->paint_limits.ulx = LIMITS_ULX_DEFAULT;
 	priv->paint_limits.uly = LIMITS_ULY_DEFAULT;
@@ -191,11 +175,44 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 
 	priv->states = stack_alloc_init(free);
 
-	gtk_widget_add_events(ret, 0
+	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
 			| GDK_BUTTON_RELEASE_MASK
 			| GDK_POINTER_MOTION_MASK
 			| GDK_POINTER_MOTION_HINT_MASK);
+}
+
+static void gfract_mandel_finalize(GObject *object)
+{
+	g_return_if_fail(GFRACT_IS_MANDEL(object));
+
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(object);
+
+	if (priv->onscreen) {
+		g_object_unref(priv->onscreen);
+		priv->onscreen = NULL;
+	}
+
+	if (priv->draw) {
+		g_object_unref(priv->draw);
+		priv->draw = NULL;
+	}
+
+	if (priv->states) {
+		stack_destroy(priv->states);
+		priv->states = NULL;
+	}
+
+	if (G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize)
+		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
+}
+
+GtkWidget *gfract_mandel_new(GtkWidget *win)
+{
+	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
+
+	priv->win = win;
 
 	return ret;
 }
@@ -304,7 +321,7 @@ static void gfract_mandel_expose_rect(GtkWidget *widget, GdkRectangle rect)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
 
-	gdk_draw_drawable(fract->parent->window,
+	gdk_draw_drawable(fract->parent_widget->window,
 			widget->style->fg_gc[GTK_WIDGET_STATE(widget)], priv->onscreen,
 			rect.x, rect.y, rect.x, rect.y, rect.width, rect.height);
 }
@@ -338,9 +355,9 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 		g_object_unref(priv->draw);
 	if (priv->onscreen)
 		g_object_unref(priv->onscreen);
-	priv->draw = gdk_pixmap_new(fract->parent->window,
+	priv->draw = gdk_pixmap_new(fract->parent_widget->window,
 			widget->allocation.width, widget->allocation.height, -1);
-	priv->onscreen = gdk_pixmap_new(fract->parent->window,
+	priv->onscreen = gdk_pixmap_new(fract->parent_widget->window,
 			widget->allocation.width, widget->allocation.height, -1);
 	gdk_draw_rectangle(priv->onscreen, widget->style->black_gc, TRUE, 0, 0,
 			widget->allocation.width, widget->allocation.height);

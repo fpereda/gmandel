@@ -34,32 +34,32 @@
 
 G_BEGIN_DECLS
 
-#define GMANDEL_TYPE_FRACT (gfract_mandel_get_type())
+#define GFRACT_TYPE_MANDEL (gfract_mandel_get_type())
 #define GFRACT_MANDEL(obj) ( \
 	G_TYPE_CHECK_INSTANCE_CAST((obj), \
-	GMANDEL_TYPE_FRACT, \
+	GFRACT_TYPE_MANDEL, \
 	GFractMandel))
 #define GFRACT_MANDEL_CLASS(obj) ( \
 	G_TYPE_CHECK_CLASS_CAST((obj), \
 	GFRACT_MANDEL, \
 	GFractMandelClass))
-#define GMANDEL_IS_FRACT(obj) ( \
+#define GFRACT_IS_MANDEL(obj) ( \
 	G_TYPE_CHECK_INSTANCE_TYPE((obj), \
-	GMANDEL_TYPE_FRACT))
-#define GMANDEL_IS_FRACT_CLASS(obj) ( \
+	GFRACT_TYPE_MANDEL))
+#define GFRACT_IS_MANDEL_CLASS(obj) ( \
 	G_TYPE_CHECK_CLASS_TYPE((obj), \
-	GMANDEL_TYPE_FRACT))
+	GFRACT_TYPE_MANDEL))
 #define GFRACT_MANDEL_GET_CLASS(obj) ( \
 	G_TYPE_INSTANCE_GET_CLASS((obj), \
-	GMANDEL_TYPE_FRACT, \
+	GFRACT_TYPE_MANDEL, \
 	GFractMandelClass))
 
 typedef struct _GFractMandel GFractMandel;
 typedef struct _GFractMandelClass GFractMandelClass;
 
 struct _GFractMandel {
-	GtkDrawingArea parent_widget;
-	GtkWidget *parent;
+	GtkDrawingArea parent;
+	GtkWidget *parent_widget;
 };
 
 struct _GFractMandelClass {
