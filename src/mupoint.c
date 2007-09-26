@@ -34,6 +34,14 @@
 #include "mupoint.h"
 #include "xfuncs.h"
 
+void mupoint_free(struct mupoint *m)
+{
+	for (unsigned i = 0; i < m->width; i++)
+		free(m->mu[i]);
+	free(m->mu);
+	m->mu = NULL;
+}
+
 void mupoint_clean_col(struct mupoint *m, unsigned i)
 {
 	for (unsigned j = 0; j < m->height; j++)

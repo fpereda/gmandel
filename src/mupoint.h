@@ -40,6 +40,8 @@ struct mupoint {
 	unsigned height;
 };
 
+void mupoint_free(struct mupoint *m);
+
 void mupoint_clean_col(struct mupoint *m, unsigned i);
 void mupoint_clean(struct mupoint *m);
 

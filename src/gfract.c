@@ -203,6 +203,8 @@ static void gfract_mandel_finalize(GObject *object)
 		priv->states = NULL;
 	}
 
+	mupoint_free(&priv->mupoint);
+
 	if (G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize)
 		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
