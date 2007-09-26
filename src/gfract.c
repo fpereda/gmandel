@@ -639,6 +639,7 @@ void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
 				sx, sy, dx, dy);
 	}
 
+	gdk_flush();
 	g_object_unref(gc);
 	free(o);
 }
