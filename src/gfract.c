@@ -698,7 +698,7 @@ GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
 			widget->allocation.width, widget->allocation.height);
 }
 
-void gfract_mandel_set_maxit(GtkWidget *widget, gulong maxit)
+void gfract_mandel_set_maxit(GtkWidget *widget, glong maxit)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (maxit <= 0)

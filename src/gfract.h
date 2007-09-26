@@ -76,7 +76,7 @@ void gfract_mandel_set_limits_box(GtkWidget *widget,
 void gfract_mandel_get_limits(GtkWidget *widget,
 		gdouble *ulx, gdouble *uly, gdouble *lly);
 
-void gfract_mandel_set_maxit(GtkWidget *widget, gulong maxit);
+void gfract_mandel_set_maxit(GtkWidget *widget, glong maxit);
 guint gfract_mandel_get_maxit(GtkWidget *widget);
 
 void gfract_mandel_draw_box(GtkWidget *widget,
