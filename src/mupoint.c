@@ -55,6 +55,17 @@ void mupoint_create_as_needed(struct mupoint *m, unsigned w, unsigned h)
 		for (unsigned i = 0; i < m->width; i++)
 			m->mu[i] = xmalloc(m->height * sizeof(**m->mu));
 		mupoint_clean(m);
+	} else if (w > m->width || h > m->height) {
+		if (w > m->width)
+			m->mu = xrealloc(m->mu, w * sizeof(*m->mu));
+		unsigned max_w = w > m->width ? w : m->width;
+		for (unsigned i = 0; i < max_w; i++)
+			m->mu[i] = i < m->width
+				? xrealloc(m->mu[i], h * sizeof(**m->mu))
+				: xmalloc(h * sizeof(**m->mu));
+		m->width = w;
+		m->height = h;
+		mupoint_clean(m);
 	}
 }
 
