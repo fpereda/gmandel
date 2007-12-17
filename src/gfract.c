@@ -80,6 +80,8 @@ struct _GFractMandelPrivate {
 	unsigned select_orig_y;
 	stack *states;
 	unsigned maxit;
+	GThread *worker;
+	bool stop_worker;
 };
 
 static void gfract_mandel_finalize(GObject *object);
@@ -175,6 +177,9 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->states = stack_alloc_init(free);
 
+	priv->worker = NULL;
+	priv->stop_worker = false;
+
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
 			| GDK_BUTTON_RELEASE_MASK
@@ -223,9 +228,7 @@ void gfract_mandel_compute(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	mupoint_clean(&priv->mupoint);
-	priv->avgfactor.v = 0;
-	priv->avgfactor.n = 0;
-	g_thread_create(threaded_mandel, widget, FALSE, NULL);
+	gfract_mandel_compute_partial(widget);
 }
 
 void gfract_mandel_compute_partial(GtkWidget *widget)
@@ -233,12 +236,15 @@ void gfract_mandel_compute_partial(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->avgfactor.v = 0;
 	priv->avgfactor.n = 0;
-	g_thread_create(threaded_mandel, widget, FALSE, NULL);
+	gfract_mandel_redraw(widget);
 }
 
 void gfract_mandel_redraw(GtkWidget *widget)
 {
-	g_thread_create(threaded_mandel, widget, FALSE, NULL);
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	if (priv->worker)
+		g_thread_join(priv->worker);
+	priv->worker = g_thread_create(threaded_mandel, widget, TRUE, NULL);
 }
 
 static gboolean
@@ -354,6 +360,16 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
 
+	/* This enter/leave pair is reversed (leave / enter) ON PURPOSE.  It has to
+	 * be that way, the worker needs to get the gdk lock in gtk_events_pending
+	 * and we currently have it (gtk_main_iteration got it for us). After we
+	 * have joined the worker, we should get the lock again.
+	 */
+	gdk_threads_leave();
+	if (priv->worker)
+		gfract_stop_wait(widget);
+	gdk_threads_enter();
+
 	if (priv->draw)
 		g_object_unref(priv->draw);
 	if (priv->onscreen)
@@ -379,23 +395,37 @@ static gpointer threaded_mandel(gpointer data)
 	GtkWidget *widget = data;
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
+	priv->stop_worker = false;
+
 	unsigned width = widget->allocation.width;
 	unsigned ticks = width / 16 + width / 128;
-	priv->progress = gui_progress_with_parent(priv->win, ticks);
+
+	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
 
 	mandel_do_mu(widget, 0, widget->allocation.width);
+
+	if (priv->stop_worker)
+		goto cleanup;
 
 	if (priv->do_energy)
 		mandel_doenergy(widget);
 	priv->do_energy = false;
 
+	if (priv->stop_worker)
+		goto cleanup;
+
 	mandel_draw(widget);
+
+	if (priv->stop_worker)
+		goto cleanup;
 
 	void *aux = priv->onscreen;
 	priv->onscreen = priv->draw;
 	priv->draw = aux;
 
+cleanup:
 	gui_progress_end(priv->progress);
+	priv->progress = NULL;
 
 	gdk_window_invalidate_rect(widget->window, NULL, TRUE);
 
@@ -439,8 +469,11 @@ static void mandel_draw(GtkWidget *widget)
 			gdk_gc_set_rgb_fg_color(gc, &color);
 			gdk_draw_point(priv->draw, gc, i, j);
 		}
-		if ((ticked++ & 127) == 0)
+		if ((ticked++ & 127) == 0) {
+			if (priv->stop_worker)
+				return;
 			gui_progress_tick(priv->progress);
+		}
 	}
 
 	g_object_unref(gc);
@@ -498,8 +531,11 @@ inc_and_cont:
 			y -= paint_inc(widget);
 		}
 		x += paint_inc(widget);
-		if ((ticked++ & 15) == 0)
+		if ((ticked++ & 15) == 0) {
+			if (priv->stop_worker)
+				return;
 			gui_progress_tick(priv->progress);
+		}
 	}
 
 	priv->avgfactor.v += acc;
@@ -728,4 +764,25 @@ void gfract_mandel_select_set_active(GtkWidget *widget, gboolean active)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->do_select = active;
+}
+
+void gfract_stop(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->stop_worker = true;
+
+	if (!stack_empty(priv->states)) {
+		struct observer_state *o = stack_pop(priv->states);
+		memcpy(&priv->paint_limits, o, sizeof(*o));
+		priv->states->destroy(o);
+	}
+}
+
+void gfract_stop_wait(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	gfract_stop(widget);
+	if (priv->worker)
+		g_thread_join(priv->worker);
+	priv->worker = NULL;
 }

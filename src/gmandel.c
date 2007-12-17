@@ -72,8 +72,7 @@ int main(int argc, char *argv[])
 
 	gui_state.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	GtkWidget *window = gui_state.window;
-	gtk_window_set_title(GTK_WINDOW(window),
-			"Mandelbrot Set generator by Fernando J. Pereda");
+	gtk_window_set_title(GTK_WINDOW(window), "gmandel");
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);

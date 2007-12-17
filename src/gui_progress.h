@@ -43,9 +43,14 @@ struct gui_progress {
 	gdouble cur;
 	bool active;
 	char buf[20];
+	void (*stopf)(GtkWidget*);
+	GtkWidget *stopa;
 };
 
-struct gui_progress *gui_progress_with_parent(GtkWidget *w, unsigned ticks);
+struct gui_progress *
+gui_progress_start(GtkWidget *parent, unsigned ticks,
+		void (*stopf)(GtkWidget*), GtkWidget *stopa);
+void gui_progress_stop(struct gui_progress *g);
 void gui_progress_tick(struct gui_progress *g);
 void gui_progress_end(struct gui_progress *g);
 

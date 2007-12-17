@@ -42,7 +42,14 @@ static inline void gtk_events_flush(void)
 		gtk_main_iteration();
 }
 
-struct gui_progress *gui_progress_with_parent(GtkWidget *parent, unsigned ticks)
+static void call_stop(GtkButton *button, gpointer data)
+{
+	gui_progress_stop(data);
+}
+
+struct gui_progress *
+gui_progress_start(GtkWidget *parent, unsigned ticks,
+		void (*stopf)(GtkWidget*), GtkWidget *stopa)
 {
 	struct gui_progress* g = xmalloc(sizeof(*g));
 	g->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -56,16 +63,33 @@ struct gui_progress *gui_progress_with_parent(GtkWidget *parent, unsigned ticks)
 
 	g->bar = gtk_progress_bar_new();
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(g->bar), "Computing");
-	gtk_container_add(GTK_CONTAINER(g->win), g->bar);
 
-	gtk_widget_show_all(g->win);
+	GtkWidget *but = gtk_button_new_from_stock(GTK_STOCK_STOP);
+	g_signal_connect(but, "clicked", G_CALLBACK(call_stop), g);
+
+	GtkWidget *box = gtk_vbox_new(FALSE, 2);
+	gtk_box_pack_start_defaults(GTK_BOX(box), g->bar);
+	gtk_box_pack_end_defaults(GTK_BOX(box), but);
+
+	gtk_container_add(GTK_CONTAINER(g->win), box);
+
 	g->step = 1.0L / ticks;
 	g->cur = 0;
 	g->active = true;
+	g->stopf = stopf;
+	g->stopa = stopa;
+
+	gtk_widget_show_all(g->win);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(g->bar), 0);
+
 	gtk_events_flush();
 
 	return g;
+}
+
+void gui_progress_stop(struct gui_progress *g)
+{
+	(*g->stopf)(g->stopa);
 }
 
 void gui_progress_tick(struct gui_progress *g)
