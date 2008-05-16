@@ -40,7 +40,7 @@ const char *authors[] = {
 	NULL
 };
 
-const char *licence = ""
+const char *license = ""
 "Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>\n"
 "All rights reserved.\n"
 "\n"
@@ -78,7 +78,7 @@ void gui_about_show(GtkWidget *parent)
 			"All rights reserved",
 			"comments",
 			"Efficient Mandelbrot set exploration program",
-			"license", licence,
+			"license", license,
 			"version", VERSION,
 			NULL);
 }
