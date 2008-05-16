@@ -390,8 +390,6 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 
 static gpointer threaded_mandel(gpointer data)
 {
-	gdk_threads_enter();
-
 	GtkWidget *widget = data;
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
@@ -400,7 +398,9 @@ static gpointer threaded_mandel(gpointer data)
 	unsigned width = widget->allocation.width;
 	unsigned ticks = width / 16 + width / 128;
 
+	gdk_threads_enter();
 	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
+	gdk_threads_leave();
 
 	mandel_do_mu(widget, 0, widget->allocation.width);
 
@@ -424,11 +424,13 @@ static gpointer threaded_mandel(gpointer data)
 	priv->draw = aux;
 
 cleanup:
+	gdk_threads_enter();
 	gui_progress_end(priv->progress);
+	gdk_threads_leave();
 	priv->progress = NULL;
 
+	gdk_threads_enter();
 	gdk_window_invalidate_rect(widget->window, NULL, TRUE);
-
 	gdk_threads_leave();
 
 	return data;
@@ -443,7 +445,9 @@ static void mandel_draw(GtkWidget *widget)
 
 	unsigned ticked = 0;
 
+	gdk_threads_enter();
 	GdkGC *gc = gdk_gc_new(priv->draw);
+	gdk_threads_leave();
 
 	long double avg;
 	if (priv->avgfactor.n > 0)
@@ -465,18 +469,24 @@ static void mandel_draw(GtkWidget *widget)
 			blue = blue > cmax ? cmax : blue;
 			green = green > cmax ? cmax : green;
 
+			gdk_threads_enter();
 			GdkColor color = { .red = red, .blue = blue, .green = green };
 			gdk_gc_set_rgb_fg_color(gc, &color);
 			gdk_draw_point(priv->draw, gc, i, j);
+			gdk_threads_leave();
 		}
 		if ((ticked++ & 127) == 0) {
 			if (priv->stop_worker)
 				return;
+			gdk_threads_enter();
 			gui_progress_tick(priv->progress);
+			gdk_threads_leave();
 		}
 	}
 
+	gdk_threads_enter();
 	g_object_unref(gc);
+	gdk_threads_leave();
 }
 
 static void mandel_doenergy(GtkWidget *widget)
@@ -534,7 +544,9 @@ inc_and_cont:
 		if ((ticked++ & 15) == 0) {
 			if (priv->stop_worker)
 				return;
+			gdk_threads_enter();
 			gui_progress_tick(priv->progress);
+			gdk_threads_leave();
 		}
 	}
 

@@ -36,12 +36,6 @@
 #include "gui_progress.h"
 #include "xfuncs.h"
 
-static inline void gtk_events_flush(void)
-{
-	while (gtk_events_pending())
-		gtk_main_iteration();
-}
-
 static void call_stop(GtkButton *button, gpointer data)
 {
 	gui_progress_stop(data);
@@ -82,8 +76,6 @@ gui_progress_start(GtkWidget *parent, unsigned ticks,
 	gtk_widget_show_all(g->win);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(g->bar), 0);
 
-	gtk_events_flush();
-
 	return g;
 }
 
@@ -100,7 +92,6 @@ void gui_progress_tick(struct gui_progress *g)
 	snprintf(g->buf, sizeof(g->buf), "Computing %d %%", (int)(g->cur * 100));
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(g->bar), g->buf);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(g->bar), g->cur);
-	gtk_events_flush();
 }
 
 void gui_progress_end(struct gui_progress *g)
@@ -108,5 +99,4 @@ void gui_progress_end(struct gui_progress *g)
 	g->active = false;
 	gtk_widget_hide_all(g->win);
 	free(g);
-	gtk_events_flush();
 }
