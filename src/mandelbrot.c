@@ -35,7 +35,9 @@
 #include "mandelbrot.h"
 #include "xfuncs.h"
 
-static inline bool mandelbrot_in_biggest_mu_atom(
+static inline
+GMANDEL_ATTRIBUTE(const)
+bool mandelbrot_in_biggest_mu_atom(
 		long double x, long double y,
 		long double y2)
 {
@@ -46,7 +48,9 @@ static inline bool mandelbrot_in_biggest_mu_atom(
 	return fabsl(modulus) < 0.25L;
 }
 
-static inline bool mandelbrot_in_cardioid(
+static inline bool
+GMANDEL_ATTRIBUTE(const)
+mandelbrot_in_cardioid(
 		long double x, long double y,
 		long double y2)
 {
