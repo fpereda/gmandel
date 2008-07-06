@@ -123,8 +123,8 @@ static inline void point_to_pixel(GtkWidget *widget,
 		struct orbit_point *o, unsigned *x, unsigned *y)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	unsigned tx = (o->x - priv->paint_limits.ulx) / paint_inc(widget);
-	unsigned ty = (priv->paint_limits.uly - o->y) / paint_inc(widget);
+	int tx = (o->x - priv->paint_limits.ulx) / paint_inc(widget);
+	int ty = (priv->paint_limits.uly - o->y) / paint_inc(widget);
 
 #define SET_IN_BOUNDS(a, l, u) do { \
 	if ((a) < (l)) \
@@ -684,8 +684,7 @@ void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
 		} else
 			point_to_pixel(widget, &o[i - 1], &dx, &dy);
 		gdk_gc_set_rgb_fg_color(gc, &colors[i % G_N_ELEMENTS(colors)]);
-		gdk_draw_line(widget->window, gc,
-				sx, sy, dx, dy);
+		gdk_draw_line(widget->window, gc, sx, sy, dx, dy);
 	}
 
 	gdk_flush();
