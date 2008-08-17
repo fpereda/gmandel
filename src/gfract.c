@@ -360,16 +360,8 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
 
-	/* This enter/leave pair is reversed (leave / enter) ON PURPOSE.  It has to
-	 * be that way, the worker needs to get the gdk lock in gtk_events_pending
-	 * and we currently have it (gtk_main_iteration got it for us). After we
-	 * have joined the worker, we should get the lock again.
-	 */
-	gdk_threads_leave();
 	if (priv->worker)
 		gfract_stop_wait(widget);
-	gdk_threads_enter();
-
 	if (priv->draw)
 		g_object_unref(priv->draw);
 	if (priv->onscreen)
