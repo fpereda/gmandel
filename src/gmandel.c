@@ -44,6 +44,7 @@
 #include "gui_progress.h"
 #include "gui_menu.h"
 #include "gui_status.h"
+#include "color.h"
 
 #include "gfract.h"
 
@@ -81,6 +82,10 @@ int main(int argc, char *argv[])
 			G_CALLBACK(handle_keypress), &gui_state);
 
 	gui_state.fract = gfract_mandel_new(window);
+	gfract_set_ratios(gui_state.fract,
+			color_get(COLOR_THEME_ICEBLUE)->red,
+			color_get(COLOR_THEME_ICEBLUE)->blue,
+			color_get(COLOR_THEME_ICEBLUE)->green);
 	gtk_widget_set_size_request(gui_state.fract, width, height);
 	g_signal_connect(gui_state.fract, "button-press-event",
 			G_CALLBACK(handle_click), NULL);

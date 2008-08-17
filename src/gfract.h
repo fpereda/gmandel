@@ -108,6 +108,11 @@ GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget);
 void gfract_stop(GtkWidget *widget);
 void gfract_stop_wait(GtkWidget *widget);
 
+void
+gfract_set_ratios(GtkWidget *widget, gfloat red, gfloat blue, gfloat green);
+void
+gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green);
+
 G_END_DECLS
 
 #endif

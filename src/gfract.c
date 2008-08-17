@@ -82,6 +82,7 @@ struct _GFractMandelPrivate {
 	unsigned maxit;
 	GThread *worker;
 	bool stop_worker;
+	struct color_ratios ratios;
 };
 
 static void gfract_mandel_finalize(GObject *object);
@@ -179,6 +180,8 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->worker = NULL;
 	priv->stop_worker = false;
+
+	priv->ratios.red = priv->ratios.blue = priv->ratios.green = 0.5;
 
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
@@ -451,9 +454,9 @@ static void mandel_draw(GtkWidget *widget)
 	for (unsigned i = 0; i < width; i++) {
 		for (unsigned j = 0; j < height; j++) {
 			long double factor = m->mu[i][j] * energyfactor;
-			guint32 red = color_get_current()->red * factor;
-			guint32 blue = color_get_current()->blue * factor;
-			guint32 green = color_get_current()->green * factor;
+			guint32 red = priv->ratios.red * factor;
+			guint32 blue = priv->ratios.blue * factor;
+			guint32 green = priv->ratios.green * factor;
 
 			static const guint16 cmax = ~0;
 
@@ -789,4 +792,27 @@ void gfract_stop_wait(GtkWidget *widget)
 	if (priv->worker)
 		g_thread_join(priv->worker);
 	priv->worker = NULL;
+}
+
+void gfract_set_ratios(GtkWidget *widget, gfloat red, gfloat blue, gfloat green)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	if (red >= 0)
+		priv->ratios.red = red;
+	if (blue >= 0)
+		priv->ratios.blue = blue;
+	if (green >= 0)
+		priv->ratios.green = green;
+}
+
+void
+gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	if (red)
+		*red = priv->ratios.red;
+	if (blue)
+		*blue = priv->ratios.blue;
+	if (green)
+		*green = priv->ratios.green;
 }

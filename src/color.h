@@ -47,7 +47,6 @@ struct color_ratios {
 };
 
 char **color_get_names(void);
-const struct color_ratios *color_get_current(void);
-void color_set_current(enum COLOR_THEMES new);
+const struct color_ratios *color_get(enum COLOR_THEMES c);
 
 #endif

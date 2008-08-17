@@ -48,19 +48,15 @@ static const struct color_ratios color_ratios[] = {
 	[COLOR_THEME_GREYSCALE] = { .red = 0.7, .blue = 0.7, .green = 0.7 },
 };
 
-static enum COLOR_THEMES color_theme = COLOR_THEME_ICEBLUE;
-
 char **color_get_names(void)
 {
 	return color_names;
 }
 
-const struct color_ratios *color_get_current(void)
+const struct color_ratios *color_get(enum COLOR_THEMES c)
 {
-	return &color_ratios[color_theme];
-}
-
-void color_set_current(enum COLOR_THEMES new)
-{
-	color_theme = new;
+	if (c >= 0 && c < COLOR_THEME_LAST)
+		return &color_ratios[c];
+	else
+		return NULL;
 }

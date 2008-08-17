@@ -90,7 +90,10 @@ void theme_changed(
 	char **names = color_get_names();
 	for (unsigned i = 0; i < COLOR_THEME_LAST; i++)
 		if (strcmp(name, names[i]) == 0)
-			color_set_current(i);
+			gfract_set_ratios(gui->fract,
+					color_get(i)->red,
+					color_get(i)->blue,
+					color_get(i)->green);
 	gfract_mandel_redraw(gui->fract);
 }
 
