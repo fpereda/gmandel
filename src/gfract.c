@@ -37,7 +37,6 @@
 
 #include "mandelbrot.h"
 #include "color_filter.h"
-#include "color.h"
 #include "mupoint.h"
 #include "gui_progress.h"
 #include "stack.h"
@@ -82,7 +81,11 @@ struct _GFractMandelPrivate {
 	unsigned maxit;
 	GThread *worker;
 	bool stop_worker;
-	struct color_ratios ratios;
+	struct {
+		float red;
+		float blue;
+		float green;
+	} ratios;
 };
 
 static void gfract_mandel_finalize(GObject *object);
