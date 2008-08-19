@@ -95,7 +95,7 @@ void gui_save_current(struct gui_params *gui)
 			&& strcmp(format, "bmp") != 0)
 		format = "png";
 
-	GdkPixbuf *buf = gfract_mandel_get_pixbuf(gui->fract);
+	GdkPixbuf *buf = gfract_get_pixbuf(gui->fract);
 
 	GError *err = NULL;
 	if (!gdk_pixbuf_save(buf, filename, format, &err, NULL)) {

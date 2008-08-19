@@ -51,7 +51,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 	gtk_toggle_action_set_active(orbits_action,
 			! gtk_toggle_action_get_active(orbits_action));
 
-	gfract_mandel_clean(widget);
+	gfract_clean(widget);
 
 	return FALSE;
 }
@@ -59,7 +59,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	struct gui_params *gui = data;
-	int nextmaxit = gfract_mandel_get_maxit(gui->fract);
+	int nextmaxit = gfract_get_maxit(gui->fract);
 
 #define EVENT_KEYVAL_EITHER(a, b) \
 	(event->keyval == (a) || event->keyval == (b))
@@ -69,13 +69,13 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Subtract, GDK_minus))
 		nextmaxit -= 100;
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Up, GDK_Up))
-		gfract_mandel_move_up(gui->fract, 7);
+		gfract_move_up(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Down, GDK_Down))
-		gfract_mandel_move_down(gui->fract, 7);
+		gfract_move_down(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Left, GDK_Left))
-		gfract_mandel_move_left(gui->fract, 7);
+		gfract_move_left(gui->fract, 7);
 	else if (EVENT_KEYVAL_EITHER(GDK_KP_Right, GDK_Right))
-		gfract_mandel_move_right(gui->fract, 7);
+		gfract_move_right(gui->fract, 7);
 
 #undef EVENT_KEYVAL_EITHER
 
@@ -87,19 +87,19 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 		case GDK_Left:
 		case GDK_KP_Left:
 		case GDK_Right:
-			gfract_mandel_compute_partial(gui->fract);
+			gfract_compute_partial(gui->fract);
 			break;
 	}
 
 	if (event->keyval == GDK_Escape
-			&& gfract_mandel_select_get_active(gui->fract)) {
-		gfract_mandel_select_set_active(gui->fract, FALSE);
-		gfract_mandel_clean(gui->fract);
+			&& gfract_select_get_active(gui->fract)) {
+		gfract_select_set_active(gui->fract, FALSE);
+		gfract_clean(gui->fract);
 	}
 
-	if (nextmaxit != gfract_mandel_get_maxit(gui->fract)) {
-		gfract_mandel_set_maxit(gui->fract, nextmaxit);
-		gui_status_set("maxit = %-6d", gfract_mandel_get_maxit(gui->fract));
+	if (nextmaxit != gfract_get_maxit(gui->fract)) {
+		gfract_set_maxit(gui->fract, nextmaxit);
+		gui_status_set("maxit = %-6d", gfract_get_maxit(gui->fract));
 	}
 
 	return FALSE;

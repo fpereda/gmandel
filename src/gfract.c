@@ -89,12 +89,12 @@ struct _GFractMandelPrivate {
 };
 
 static void gfract_mandel_finalize(GObject *object);
-static gboolean gfract_mandel_expose(GtkWidget *widget, GdkEventExpose *event);
+static gboolean gfract_expose(GtkWidget *widget, GdkEventExpose *event);
 static gboolean
-gfract_mandel_button_press(GtkWidget *widget, GdkEventButton *event);
+gfract_button_press(GtkWidget *widget, GdkEventButton *event);
 static gboolean
-gfract_mandel_button_release(GtkWidget *widget, GdkEventButton *event);
-static gboolean gfract_mandel_motion(GtkWidget *widget, GdkEventMotion *event);
+gfract_button_release(GtkWidget *widget, GdkEventButton *event);
+static gboolean gfract_motion(GtkWidget *widget, GdkEventMotion *event);
 static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
 static gpointer threaded_mandel(gpointer data);
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
@@ -149,11 +149,11 @@ static void gfract_mandel_class_init(GFractMandelClass *class)
 
 	object_class->finalize = gfract_mandel_finalize;
 
-	widget_class->expose_event = gfract_mandel_expose;
+	widget_class->expose_event = gfract_expose;
 	widget_class->configure_event = configure_fract;
-	widget_class->button_press_event = gfract_mandel_button_press;
-	widget_class->button_release_event = gfract_mandel_button_release;
-	widget_class->motion_notify_event = gfract_mandel_motion;
+	widget_class->button_press_event = gfract_button_press;
+	widget_class->button_release_event = gfract_button_release;
+	widget_class->motion_notify_event = gfract_motion;
 
 	g_type_class_add_private(object_class, sizeof(GFractMandelPrivate));
 }
@@ -230,14 +230,14 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 	return ret;
 }
 
-void gfract_mandel_compute(GtkWidget *widget)
+void gfract_compute(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	mupoint_clean(&priv->mupoint);
-	gfract_mandel_compute_partial(widget);
+	gfract_compute_partial(widget);
 }
 
-void gfract_mandel_compute_partial(GtkWidget *widget)
+void gfract_compute_partial(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->avgfactor.v = 0;
@@ -254,7 +254,7 @@ void gfract_mandel_redraw(GtkWidget *widget)
 }
 
 static gboolean
-gfract_mandel_button_press(GtkWidget *widget, GdkEventButton *event)
+gfract_button_press(GtkWidget *widget, GdkEventButton *event)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
@@ -273,14 +273,14 @@ gfract_mandel_button_press(GtkWidget *widget, GdkEventButton *event)
 		struct observer_state *o = stack_pop(priv->states);
 		memcpy(&priv->paint_limits, o, sizeof(*o));
 		priv->states->destroy(o);
-		gfract_mandel_compute(widget);
+		gfract_compute(widget);
 	}
 
 	return FALSE;
 }
 
 static gboolean
-gfract_mandel_button_release(GtkWidget *widget, GdkEventButton *event)
+gfract_button_release(GtkWidget *widget, GdkEventButton *event)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
@@ -290,7 +290,7 @@ gfract_mandel_button_release(GtkWidget *widget, GdkEventButton *event)
 		return FALSE;
 	else if (priv->select_orig_y == event->y) {
 		priv->do_select = false;
-		gfract_mandel_clean(widget);
+		gfract_clean(widget);
 		return FALSE;
 	}
 
@@ -300,30 +300,30 @@ gfract_mandel_button_release(GtkWidget *widget, GdkEventButton *event)
 	memcpy(o, &priv->paint_limits, sizeof(*o));
 	stack_push(priv->states, o);
 
-	gfract_mandel_set_limits_box(widget,
+	gfract_set_limits_box(widget,
 			priv->select_orig_x, priv->select_orig_y,
 			event->x, event->y);
 
-	gfract_mandel_compute(widget);
+	gfract_compute(widget);
 
 	return FALSE;
 }
 
-static gboolean gfract_mandel_motion(GtkWidget *widget, GdkEventMotion *event)
+static gboolean gfract_motion(GtkWidget *widget, GdkEventMotion *event)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 
 	if (!priv->do_select && !priv->do_orbits)
 		goto done;
 
-	gfract_mandel_clean(widget);
+	gfract_clean(widget);
 
 	if (priv->do_select)
-		gfract_mandel_draw_box(widget,
+		gfract_draw_box(widget,
 				priv->select_orig_x, priv->select_orig_y,
 				event->x, event->y);
 	else if (priv->do_orbits)
-		gfract_mandel_draw_orbit_pixel(widget, event->x, event->y);
+		gfract_draw_orbit_pixel(widget, event->x, event->y);
 
 done:
 	/* we are done so ask for more events */
@@ -331,7 +331,7 @@ done:
 	return TRUE;
 }
 
-static void gfract_mandel_expose_rect(GtkWidget *widget, GdkRectangle rect)
+static void gfract_expose_rect(GtkWidget *widget, GdkRectangle rect)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
@@ -341,20 +341,20 @@ static void gfract_mandel_expose_rect(GtkWidget *widget, GdkRectangle rect)
 			rect.x, rect.y, rect.x, rect.y, rect.width, rect.height);
 }
 
-void gfract_mandel_clean(GtkWidget *widget)
+void gfract_clean(GtkWidget *widget)
 {
 	GdkRectangle all = { .x = 0, .y = 0, .width = -1, .height = -1 };
-	gfract_mandel_expose_rect(widget, all);
+	gfract_expose_rect(widget, all);
 }
 
-static gboolean gfract_mandel_expose(GtkWidget *widget, GdkEventExpose *event)
+static gboolean gfract_expose(GtkWidget *widget, GdkEventExpose *event)
 {
 	GdkRectangle *rect;
 	int n_rects;
 	gdk_region_get_rectangles(event->region, &rect, &n_rects);
 
 	for (unsigned i = 0; i < n_rects; i++)
-		gfract_mandel_expose_rect(widget, rect[i]);
+		gfract_expose_rect(widget, rect[i]);
 
 	g_free(rect);
 
@@ -381,7 +381,7 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	mupoint_create_as_needed(&priv->mupoint,
 			widget->allocation.width, widget->allocation.height);
 
-	gfract_mandel_compute(widget);
+	gfract_compute(widget);
 
 	return TRUE;
 }
@@ -552,14 +552,14 @@ inc_and_cont:
 	priv->avgfactor.n += nacc;
 }
 
-void gfract_mandel_history_clear(GtkWidget *widget)
+void gfract_history_clear(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	while (!stack_empty(priv->states))
 		priv->states->destroy(stack_pop(priv->states));
 }
 
-void gfract_mandel_get_limits(GtkWidget *widget,
+void gfract_get_limits(GtkWidget *widget,
 		gdouble *ulx, gdouble *uly, gdouble *lly)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
@@ -571,15 +571,15 @@ void gfract_mandel_get_limits(GtkWidget *widget,
 		*lly = priv->paint_limits.lly;
 }
 
-void gfract_mandel_set_limits_default(GtkWidget *widget)
+void gfract_set_limits_default(GtkWidget *widget)
 {
-	gfract_mandel_set_limits(widget,
+	gfract_set_limits(widget,
 			LIMITS_ULX_DEFAULT,
 			LIMITS_ULY_DEFAULT,
 			LIMITS_LLY_DEFAULT);
 }
 
-void gfract_mandel_set_limits(GtkWidget *widget,
+void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
@@ -614,17 +614,17 @@ static void box_limits(GtkWidget *widget,
 		*uly = -(nuy * paint_inc(widget) - priv->paint_limits.uly);
 }
 
-void gfract_mandel_set_limits_box(GtkWidget *widget,
+void gfract_set_limits_box(GtkWidget *widget,
 		guint sx, guint sy, guint dx, guint dy)
 {
 	double ulx;
 	double uly;
 	double lly;
 	box_limits(widget, sx, sy, dx, dy, &ulx, &uly, &lly);
-	gfract_mandel_set_limits(widget, ulx, uly, lly);
+	gfract_set_limits(widget, ulx, uly, lly);
 }
 
-void gfract_mandel_draw_box(GtkWidget *widget,
+void gfract_draw_box(GtkWidget *widget,
 		guint sx, guint sy, guint dx, guint dy)
 {
 	unsigned n_height = MAX(sy, dy) - MIN(sy, dy);
@@ -643,19 +643,19 @@ void gfract_mandel_draw_box(GtkWidget *widget,
 	gdk_draw_line(widget->window, gc, dx, dy, dx, sy);
 }
 
-void gfract_mandel_orbits_set_active(GtkWidget *widget, gboolean active)
+void gfract_orbits_set_active(GtkWidget *widget, gboolean active)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->do_orbits = active;
 }
 
-gboolean gfract_mandel_orbits_get_active(GtkWidget *widget)
+gboolean gfract_orbits_get_active(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return priv->do_orbits;
 }
 
-void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
+void gfract_draw_orbit(GtkWidget *widget, long double x, long double y)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GdkGC *gc = gdk_gc_new(widget->window);
@@ -692,15 +692,15 @@ void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y)
 	free(o);
 }
 
-void gfract_mandel_draw_orbit_pixel(GtkWidget *widget, guint px, guint py)
+void gfract_draw_orbit_pixel(GtkWidget *widget, guint px, guint py)
 {
 	long double x;
 	long double y;
 	pixel_to_point(widget, px, py, &x, &y);
-	gfract_mandel_draw_orbit(widget, x, y);
+	gfract_draw_orbit(widget, x, y);
 }
 
-void gfract_mandel_move_up(GtkWidget *widget, guint n)
+void gfract_move_up(GtkWidget *widget, guint n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->paint_limits.uly += n * paint_inc(widget);
@@ -710,7 +710,7 @@ void gfract_mandel_move_up(GtkWidget *widget, guint n)
 	priv->do_energy = true;
 }
 
-void gfract_mandel_move_down(GtkWidget *widget, guint n)
+void gfract_move_down(GtkWidget *widget, guint n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->paint_limits.uly -= n * paint_inc(widget);
@@ -720,7 +720,7 @@ void gfract_mandel_move_down(GtkWidget *widget, guint n)
 	priv->do_energy = true;
 }
 
-void gfract_mandel_move_right(GtkWidget *widget, guint n)
+void gfract_move_right(GtkWidget *widget, guint n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->paint_limits.ulx += n * paint_inc(widget);
@@ -729,7 +729,7 @@ void gfract_mandel_move_right(GtkWidget *widget, guint n)
 	priv->do_energy = true;
 }
 
-void gfract_mandel_move_left(GtkWidget *widget, guint n)
+void gfract_move_left(GtkWidget *widget, guint n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->paint_limits.ulx -= n *paint_inc(widget);
@@ -738,7 +738,7 @@ void gfract_mandel_move_left(GtkWidget *widget, guint n)
 	priv->do_energy = true;
 }
 
-GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
+GdkPixbuf *gfract_get_pixbuf(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return gdk_pixbuf_get_from_drawable(NULL,
@@ -746,7 +746,7 @@ GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget)
 			widget->allocation.width, widget->allocation.height);
 }
 
-void gfract_mandel_set_maxit(GtkWidget *widget, glong maxit)
+void gfract_set_maxit(GtkWidget *widget, glong maxit)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (maxit <= 0)
@@ -757,19 +757,19 @@ void gfract_mandel_set_maxit(GtkWidget *widget, glong maxit)
 		priv->maxit = maxit;
 }
 
-guint gfract_mandel_get_maxit(GtkWidget *widget)
+guint gfract_get_maxit(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return priv->maxit;
 }
 
-gboolean gfract_mandel_select_get_active(GtkWidget *widget)
+gboolean gfract_select_get_active(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return priv->do_select;
 }
 
-void gfract_mandel_select_set_active(GtkWidget *widget, gboolean active)
+void gfract_select_set_active(GtkWidget *widget, gboolean active)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->do_select = active;

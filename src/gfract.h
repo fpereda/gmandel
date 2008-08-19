@@ -68,42 +68,42 @@ struct _GFractMandelClass {
 
 GtkWidget *gfract_mandel_new(GtkWidget *win);
 
-void gfract_mandel_set_limits(GtkWidget *widget,
+void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly);
-void gfract_mandel_set_limits_default(GtkWidget *widget);
-void gfract_mandel_set_limits_box(GtkWidget *widget,
+void gfract_set_limits_default(GtkWidget *widget);
+void gfract_set_limits_box(GtkWidget *widget,
 		guint sx, guint sy, guint dx, guint dy);
-void gfract_mandel_get_limits(GtkWidget *widget,
+void gfract_get_limits(GtkWidget *widget,
 		gdouble *ulx, gdouble *uly, gdouble *lly);
 
-void gfract_mandel_set_maxit(GtkWidget *widget, glong maxit);
-guint gfract_mandel_get_maxit(GtkWidget *widget);
+void gfract_set_maxit(GtkWidget *widget, glong maxit);
+guint gfract_get_maxit(GtkWidget *widget);
 
-void gfract_mandel_draw_box(GtkWidget *widget,
+void gfract_draw_box(GtkWidget *widget,
 		guint sx, guint sy, guint dx, guint dy);
 
-void gfract_mandel_clean(GtkWidget *widget);
+void gfract_clean(GtkWidget *widget);
 
-void gfract_mandel_history_clear(GtkWidget *widget);
+void gfract_history_clear(GtkWidget *widget);
 
-void gfract_mandel_compute(GtkWidget *widget);
-void gfract_mandel_compute_partial(GtkWidget *widget);
+void gfract_compute(GtkWidget *widget);
+void gfract_compute_partial(GtkWidget *widget);
 void gfract_mandel_redraw(GtkWidget *widget);
 
-gboolean gfract_mandel_select_get_active(GtkWidget *widget);
-void gfract_mandel_select_set_active(GtkWidget *widget, gboolean active);
+gboolean gfract_select_get_active(GtkWidget *widget);
+void gfract_select_set_active(GtkWidget *widget, gboolean active);
 
-void gfract_mandel_orbits_set_active(GtkWidget *widget, gboolean active);
-gboolean gfract_mandel_orbits_get_active(GtkWidget *widget);
-void gfract_mandel_draw_orbit(GtkWidget *widget, long double x, long double y);
-void gfract_mandel_draw_orbit_pixel(GtkWidget *widget, guint px, guint py);
+void gfract_orbits_set_active(GtkWidget *widget, gboolean active);
+gboolean gfract_orbits_get_active(GtkWidget *widget);
+void gfract_draw_orbit(GtkWidget *widget, long double x, long double y);
+void gfract_draw_orbit_pixel(GtkWidget *widget, guint px, guint py);
 
-void gfract_mandel_move_up(GtkWidget *widget, guint n);
-void gfract_mandel_move_down(GtkWidget *widget, guint n);
-void gfract_mandel_move_right(GtkWidget *widget, guint n);
-void gfract_mandel_move_left(GtkWidget *widget, guint n);
+void gfract_move_up(GtkWidget *widget, guint n);
+void gfract_move_down(GtkWidget *widget, guint n);
+void gfract_move_right(GtkWidget *widget, guint n);
+void gfract_move_left(GtkWidget *widget, guint n);
 
-GdkPixbuf *gfract_mandel_get_pixbuf(GtkWidget *widget);
+GdkPixbuf *gfract_get_pixbuf(GtkWidget *widget);
 
 void gfract_stop(GtkWidget *widget);
 void gfract_stop_wait(GtkWidget *widget);

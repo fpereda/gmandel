@@ -52,8 +52,8 @@ void handle_loadstate(GtkAction *action, gpointer data)
 	struct gui_params *gui = data;
 	if (!gui_state_load(gui))
 		return;
-	gfract_mandel_history_clear(gui->fract);
-	gfract_mandel_compute(gui->fract);
+	gfract_history_clear(gui->fract);
+	gfract_compute(gui->fract);
 }
 
 void handle_save(GtkAction *action, gpointer data)
@@ -64,22 +64,22 @@ void handle_save(GtkAction *action, gpointer data)
 void handle_restart(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	gfract_mandel_set_limits_default(gui->fract);
-	gfract_mandel_history_clear(gui->fract);
-	gfract_mandel_compute(gui->fract);
+	gfract_set_limits_default(gui->fract);
+	gfract_history_clear(gui->fract);
+	gfract_compute(gui->fract);
 }
 
 void handle_recompute(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	gfract_mandel_compute(gui->fract);
+	gfract_compute(gui->fract);
 }
 
 void toggle_orbits(GtkToggleAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
-	gfract_mandel_orbits_set_active(gui->fract,
-			!gfract_mandel_orbits_get_active(gui->fract));
+	gfract_orbits_set_active(gui->fract,
+			!gfract_orbits_get_active(gui->fract));
 }
 
 void theme_changed(
