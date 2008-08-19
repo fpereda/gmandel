@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>
+ * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
  * Copyright (c) 2007, Sergio Martínez Tornell <sertinell@gmail.com>
  * All rights reserved.
  *

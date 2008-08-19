@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>
+ * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,12 @@
 #include "gui_about.h"
 
 const char *authors[] = {
-	"Fernando J. Pereda <ferdy@gentoo.org>",
+	"Fernando J. Pereda <ferdy@ferdyx.org>",
 	NULL
 };
 
 const char *licence = ""
-"Copyright (c) 2008, Fernando J. Pereda <ferdy@gentoo.org>\n"
+"Copyright (c) 2008, Fernando J. Pereda <ferdy@ferdyx.org>\n"
 "All rights reserved.\n"
 "\n"
 "Redistribution and use in source and binary forms, with or without\n"
@@ -74,7 +74,7 @@ void gui_about_show(GtkWidget *parent)
 	gtk_show_about_dialog(GTK_WINDOW(parent),
 			"authors", authors,
 			"copyright",
-			"Copyright (c) 2007, Fernando J. Pereda <ferdy@gentoo.org>\n"
+			"Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>\n"
 			"All rights reserved",
 			"comments",
 			"Efficient Mandelbrot set exploration program",
