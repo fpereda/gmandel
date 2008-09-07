@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
+ * Copyright (c) 2007, 2008 Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <gtk/gtk.h>
 
 #include "mandelbrot.h"
+#include "julia.h"
 #include "color_filter.h"
 #include "mupoint.h"
 #include "gui_progress.h"
@@ -86,6 +87,15 @@ struct _GFractMandelPrivate {
 		float blue;
 		float green;
 	} ratios;
+
+	/* TODO: Julia exploration 'done right'
+	 *  - Make two classes (GFractMandel and GFractJulia) deriving GFractWidget
+	 *  - Split julia-related members
+	 *  - threaded_mandel is not really mandelbrot-specific
+	 */
+	int type;
+	long double cx;
+	long double cy;
 };
 
 static void gfract_mandel_finalize(GObject *object);
@@ -98,17 +108,19 @@ static gboolean gfract_motion(GtkWidget *widget, GdkEventMotion *event);
 static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
 static gpointer threaded_mandel(gpointer data);
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
+static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void mandel_draw(GtkWidget *widget);
 static void mandel_doenergy(GtkWidget *widget);
 
 static inline long double paint_inc(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	return (priv->paint_limits.uly - priv->paint_limits.lly)
-		/ (widget->allocation.height - 1);
+	gint height;
+	gtk_widget_get_size_request(widget, NULL, &height);
+	return (priv->paint_limits.uly - priv->paint_limits.lly) / (height - 1);
 }
 
-static inline void pixel_to_point(GtkWidget *widget,
+void gfract_pixel_to_point(GtkWidget *widget,
 		unsigned px, unsigned py,
 		long double *x, long double *y)
 {
@@ -186,6 +198,8 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->ratios.red = priv->ratios.blue = priv->ratios.green = 0.5;
 
+	priv->cx = priv->cy = 0.0;
+
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
 			| GDK_BUTTON_RELEASE_MASK
@@ -226,6 +240,18 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
 	priv->win = win;
+	priv->type = 0;
+
+	return ret;
+}
+
+GtkWidget *gfract_julia_new(GtkWidget *win)
+{
+	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
+
+	priv->win = win;
+	priv->type = 1;
 
 	return ret;
 }
@@ -400,7 +426,10 @@ static gpointer threaded_mandel(gpointer data)
 	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
 	gdk_threads_leave();
 
-	mandel_do_mu(widget, 0, widget->allocation.width);
+	if (priv->type == 0)
+		mandel_do_mu(widget, 0, widget->allocation.width);
+	else
+		julia_do_mu(widget, 0, widget->allocation.width);
 
 	if (priv->stop_worker)
 		goto cleanup;
@@ -523,6 +552,56 @@ static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
 
 			long double modulus;
 			unsigned it = mandelbrot_it(priv->maxit, &x, &y, &modulus);
+
+			/* Renormalized formula for the escape radius.
+			 * Optimize away the case where it == 0
+			 */
+			if (it > 0) {
+				long double mu = it - logl(fabsl(logl(modulus)));
+				mu /= M_LN2;
+				m->mu[i + begin][j] = mu;
+				acc += mu;
+				nacc++;
+			} else
+				m->mu[i + begin][j] = 0L;
+inc_and_cont:
+			y -= paint_inc(widget);
+		}
+		x += paint_inc(widget);
+		if ((ticked++ & 15) == 0) {
+			if (priv->stop_worker)
+				return;
+			gdk_threads_enter();
+			gui_progress_tick(priv->progress);
+			gdk_threads_leave();
+		}
+	}
+
+	priv->avgfactor.v += acc;
+	priv->avgfactor.n += nacc;
+}
+
+static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	struct mupoint *m = &priv->mupoint;
+	unsigned height = widget->allocation.height;
+	long double x;
+	long double y;
+	long double acc = 0;
+	unsigned nacc = 0;
+	unsigned ticked = 0;
+
+	x = priv->paint_limits.ulx + begin * paint_inc(widget);
+	for (unsigned i = 0; i < n; i++) {
+		y = priv->paint_limits.uly;
+		for (unsigned j = 0; j < height; j++) {
+			if (m->mu[i + begin][j] != -1L)
+				goto inc_and_cont;
+
+			long double modulus;
+			unsigned it = julia_it(priv->maxit,
+					&x, &y, &priv->cx, &priv->cy, &modulus);
 
 			/* Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
@@ -696,7 +775,7 @@ void gfract_draw_orbit_pixel(GtkWidget *widget, guint px, guint py)
 {
 	long double x;
 	long double y;
-	pixel_to_point(widget, px, py, &x, &y);
+	gfract_pixel_to_point(widget, px, py, &x, &y);
 	gfract_draw_orbit(widget, x, y);
 }
 
@@ -817,4 +896,11 @@ gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green)
 		*blue = priv->ratios.blue;
 	if (green)
 		*green = priv->ratios.green;
+}
+
+void gfract_julia_set_center(GtkWidget *widget, long double x, long double y)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->cx = x;
+	priv->cy = y;
 }

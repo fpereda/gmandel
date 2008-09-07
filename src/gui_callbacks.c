@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
+ * Copyright (c) 2007, 2008 Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,19 +41,41 @@
 #include "gui_status.h"
 #include "gui_callbacks.h"
 #include "gfract.h"
+#include "color.h"
 
 gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 {
-	if (event->button != 2)
+	if (event->button == 2) {
+		GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
+		gtk_toggle_action_set_active(orbits_action,
+				! gtk_toggle_action_get_active(orbits_action));
+		gfract_clean(widget);
+	} else if (event->button == 1 && event->state & GDK_SHIFT_MASK) {
+		GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		gtk_window_set_title(GTK_WINDOW(window), "Doing Julia");
+		gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+
+		GtkWidget *f = gfract_julia_new(window);
+		gtk_widget_set_size_request(f, 640, 480);
+		gfract_set_limits(f, -2.0, 1.5, -1.5);
+
+		gfract_set_ratios(f,
+				color_get(COLOR_THEME_GREENPARK)->red,
+				color_get(COLOR_THEME_GREENPARK)->blue,
+				color_get(COLOR_THEME_GREENPARK)->green);
+
+		long double cx, cy;
+		gfract_pixel_to_point(widget, event->x, event->y, &cx, &cy);
+		gfract_julia_set_center(f, cx, cy);
+
+		gui_status_set("Doing Julia Set for c(%LG, %LG)", cx, cy);
+
+		gtk_container_add(GTK_CONTAINER(window), f);
+		gtk_widget_show_all(window);
+	} else
 		return FALSE;
 
-	GtkToggleAction *orbits_action = gui_menu_get_orbits_action();
-	gtk_toggle_action_set_active(orbits_action,
-			! gtk_toggle_action_get_active(orbits_action));
-
-	gfract_clean(widget);
-
-	return FALSE;
+	return TRUE;
 }
 
 gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)

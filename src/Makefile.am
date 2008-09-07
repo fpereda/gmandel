@@ -22,6 +22,7 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
                   gui_state.c gui_state.h \
                   gui_status.c gui_status.h \
                   mandelbrot.c mandelbrot.h \
+                  julia.c julia.h \
                   mupoint.c mupoint.h \
                   stack.c stack.h
 gmandel_LDADD = $(gtk_LIBS) $(gthread_LIBS) -lm

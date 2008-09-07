@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
+ * Copyright (c) 2007, 2008 Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,7 @@ struct _GFractMandelClass {
 };
 
 GtkWidget *gfract_mandel_new(GtkWidget *win);
+GtkWidget *gfract_julia_new(GtkWidget *win);
 
 void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly);
@@ -112,6 +113,12 @@ void
 gfract_set_ratios(GtkWidget *widget, gfloat red, gfloat blue, gfloat green);
 void
 gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green);
+
+void gfract_julia_set_center(GtkWidget *widget, long double x, long double y);
+
+void gfract_pixel_to_point(GtkWidget *widget,
+		unsigned px, unsigned py,
+		long double *x, long double *y);
 
 G_END_DECLS
 
