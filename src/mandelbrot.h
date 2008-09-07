@@ -47,7 +47,4 @@ unsigned mandelbrot_it(
 		long double *cx, long double *cy,
 		long double *modulus);
 
-unsigned mandelbrot_get_maxit(void);
-void mandelbrot_set_maxit(long n);
-
 #endif
