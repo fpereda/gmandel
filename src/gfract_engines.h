@@ -29,21 +29,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GMANDEL_JULIA_H_
-#define GMANDEL_JULIA_H_ 1
+#ifndef GMANDEL_GFRACT_ENGINES_H_
+#define GMANDEL_GFRACT_ENGINES_H_ 1
 
-#include "gfract_engines.h"
-
-struct orbit_point *julia_orbit(
-		unsigned maxit,
-		long double *x0, long double *y0,
-		long double *cx, long double *cy,
-		unsigned *n);
-
-unsigned julia_it(
-		unsigned maxit,
-		long double *x0, long double *y0,
-		long double *cx, long double *cy,
-		long double *modulus);
+struct orbit_point {
+	long double x;
+	long double y;
+};
 
 #endif

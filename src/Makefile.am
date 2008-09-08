@@ -8,7 +8,7 @@ SUBDIRS = .
 
 bin_PROGRAMS = gmandel
 
-gmandel_SOURCES = gmandel.c xfuncs.h gui.h \
+gmandel_SOURCES = gmandel.c xfuncs.h gui.h gfract_engines.h \
                   color.c color.h \
                   color_filter.c color_filter.h \
                   gfract.c gfract.h \

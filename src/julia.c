@@ -32,7 +32,51 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include "xfuncs.h"
 #include "julia.h"
+
+struct orbit_point *julia_orbit(
+		unsigned maxit,
+		long double *x0, long double *y0,
+		long double *cx, long double *cy,
+		unsigned *n)
+{
+	struct orbit_point *o = xmalloc(maxit * sizeof(*o));
+	unsigned it = 0;
+
+	long double x;
+	long double y;
+	long double xc;
+	long double yc;
+	long double x2;
+	long double y2;
+
+	x = *x0;
+	y = *y0;
+
+	xc = *cx;
+	yc = *cy;
+
+	x2 = x * x;
+	y2 = y * y;
+
+	*n = 0;
+
+	while ((x2 + y2) < 16 && it < maxit) {
+		y = 2 * x * y + yc;
+		x = x2 - y2 + xc;
+		for (unsigned i = 0; i < it; i++)
+			if (o[i].x == x && o[i].y == y)
+				return o;
+		x2 = x * x;
+		y2 = y * y;
+		o[it].x = x;
+		o[it].y = y;
+		*n = it++;
+	}
+
+	return o;
+}
 
 unsigned julia_it(
 		unsigned maxit,

@@ -43,6 +43,17 @@
 #include "gfract.h"
 #include "color.h"
 
+static gboolean handle_julia_click(GtkWidget *widget, GdkEventButton *event)
+{
+	if (event->button == 2) {
+		gfract_orbits_set_active(widget, !gfract_orbits_get_active(widget));
+		gfract_clean(widget);
+	} else
+		return FALSE;
+
+	return TRUE;
+}
+
 gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 {
 	if (event->button == 2) {
@@ -57,6 +68,9 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		GtkWidget *f = gfract_julia_new(window);
 		gtk_widget_set_size_request(f, 640, 480);
 		gfract_set_limits(f, -2.0, 1.5, -1.5);
+
+		g_signal_connect(f, "button-press-event",
+				G_CALLBACK(handle_julia_click), NULL);
 
 		gfract_set_ratios(f,
 				color_get(COLOR_THEME_GREENPARK)->red,

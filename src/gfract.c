@@ -43,6 +43,7 @@
 #include "stack.h"
 #include "xfuncs.h"
 #include "gfract.h"
+#include "gfract_engines.h"
 
 #define LIMITS_ULX_DEFAULT (-2.1)
 #define LIMITS_ULY_DEFAULT (1.1)
@@ -749,7 +750,9 @@ void gfract_draw_orbit(GtkWidget *widget, long double x, long double y)
 	};
 
 	unsigned n;
-	struct orbit_point *o = mandelbrot_orbit(priv->maxit, &x, &y, &n);
+	struct orbit_point *o = priv->type == 0
+		? mandelbrot_orbit(priv->maxit, &x, &y, &n)
+		: julia_orbit(priv->maxit, &x, &y, &priv->cx, &priv->cy, &n);
 
 	for (unsigned i = 0; i < n; i++) {
 		unsigned sx;

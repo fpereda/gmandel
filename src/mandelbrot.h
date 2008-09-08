@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>
+ * Copyright (c) 2007, 2008 Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,7 @@
 #ifndef GMANDEL_MANDELBROT_H_
 #define GMANDEL_MANDELBROT_H_ 1
 
-struct orbit_point {
-	long double x;
-	long double y;
-};
+#include "gfract_engines.h"
 
 struct orbit_point *mandelbrot_orbit(
 		unsigned maxit,
