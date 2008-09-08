@@ -52,7 +52,6 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		gfract_clean(widget);
 	} else if (event->button == 1 && event->state & GDK_SHIFT_MASK) {
 		GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		gtk_window_set_title(GTK_WINDOW(window), "Doing Julia");
 		gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
 		GtkWidget *f = gfract_julia_new(window);
@@ -68,7 +67,9 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		gfract_pixel_to_point(widget, event->x, event->y, &cx, &cy);
 		gfract_julia_set_center(f, cx, cy);
 
-		gui_status_set("Doing Julia Set for c(%LG, %LG)", cx, cy);
+		gchar *title = g_strdup_printf("Julia Set for c(%LG, %LG)", cx, cy);
+		gtk_window_set_title(GTK_WINDOW(window), title);
+		g_free(title);
 
 		gtk_container_add(GTK_CONTAINER(window), f);
 		gtk_widget_show_all(window);
