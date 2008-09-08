@@ -94,7 +94,6 @@ struct _GFractMandelPrivate {
 	/* TODO: Julia exploration 'done right'
 	 *  - Make two classes (GFractMandel and GFractJulia) deriving GFractWidget
 	 *  - Split julia-related members
-	 *  - threaded_mandel is not really mandelbrot-specific
 	 */
 	int type;
 	long double cx;
@@ -109,7 +108,7 @@ static gboolean
 gfract_button_release(GtkWidget *widget, GdkEventButton *event);
 static gboolean gfract_motion(GtkWidget *widget, GdkEventMotion *event);
 static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
-static gpointer threaded_mandel(gpointer data);
+static gpointer run_worker(gpointer data);
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void mandel_draw(GtkWidget *widget);
@@ -275,7 +274,7 @@ void gfract_mandel_redraw(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (priv->worker)
 		g_thread_join(priv->worker);
-	priv->worker = g_thread_create(threaded_mandel, widget, TRUE, NULL);
+	priv->worker = g_thread_create(run_worker, widget, TRUE, NULL);
 }
 
 static gboolean
@@ -411,7 +410,7 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	return TRUE;
 }
 
-static gpointer threaded_mandel(gpointer data)
+static gpointer run_worker(gpointer data)
 {
 	GtkWidget *widget = data;
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
