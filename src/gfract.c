@@ -133,26 +133,11 @@ void gfract_pixel_to_point(GtkWidget *widget,
 }
 
 static inline void point_to_pixel(GtkWidget *widget,
-		struct orbit_point *o, unsigned *x, unsigned *y)
+		struct orbit_point *o, gint *x, gint *y)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	int tx = (o->x - priv->paint_limits.ulx) / paint_inc(widget);
-	int ty = (priv->paint_limits.uly - o->y) / paint_inc(widget);
-
-#define SET_IN_BOUNDS(a, l, u) do { \
-	if ((a) < (l)) \
-		(a) = (l); \
-	if ((a) > (u)) \
-		(a) = (u); \
-} while (0);
-
-	SET_IN_BOUNDS(tx, 0, widget->allocation.width);
-	SET_IN_BOUNDS(ty, 0, widget->allocation.height);
-
-#undef SET_IN_BOUNDS
-
-	*x = tx;
-	*y = ty;
+	*x = (o->x - priv->paint_limits.ulx) / paint_inc(widget);
+	*y = (priv->paint_limits.uly - o->y) / paint_inc(widget);
 }
 
 static void gfract_mandel_class_init(GFractMandelClass *class)
@@ -755,10 +740,10 @@ void gfract_draw_orbit(GtkWidget *widget, long double x, long double y)
 		: julia_orbit(priv->maxit, &x, &y, &priv->cx, &priv->cy, &n);
 
 	for (unsigned i = 0; i < n; i++) {
-		unsigned sx;
-		unsigned sy;
-		unsigned dx;
-		unsigned dy;
+		gint sx;
+		gint sy;
+		gint dx;
+		gint dy;
 		point_to_pixel(widget, &o[i], &sx, &sy);
 		if (i == 0) {
 			struct orbit_point so = { .x = x, .y = y };
