@@ -66,8 +66,8 @@ struct _GFractMandelClass {
 	GtkDrawingAreaClass parent_class;
 };
 
-GtkWidget *gfract_mandel_new(GtkWidget *win);
-GtkWidget *gfract_julia_new(GtkWidget *win);
+GtkWidget *gfract_mandel_new(GtkWidget *win, guint width, guint height);
+GtkWidget *gfract_julia_new(GtkWidget *win, guint width, guint height);
 
 void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly);

@@ -88,6 +88,8 @@ struct _GFractMandelPrivate {
 		float blue;
 		float green;
 	} ratios;
+	unsigned width;
+	unsigned height;
 
 	/* TODO: Julia exploration 'done right'
 	 *  - Make two classes (GFractMandel and GFractJulia) deriving GFractWidget
@@ -116,9 +118,8 @@ static void mandel_doenergy(GtkWidget *widget);
 static inline long double paint_inc(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	gint height;
-	gtk_widget_get_size_request(widget, NULL, &height);
-	return (priv->paint_limits.uly - priv->paint_limits.lly) / (height - 1);
+	return (priv->paint_limits.uly - priv->paint_limits.lly)
+		/ (priv->height - 1);
 }
 
 void gfract_pixel_to_point(GtkWidget *widget,
@@ -184,6 +185,8 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->ratios.red = priv->ratios.blue = priv->ratios.green = 0.5;
 
+	priv->height = priv->width = 0;
+
 	priv->cx = priv->cy = 0.0;
 
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
@@ -220,7 +223,7 @@ static void gfract_mandel_finalize(GObject *object)
 		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
 
-GtkWidget *gfract_mandel_new(GtkWidget *win)
+GtkWidget *gfract_mandel_new(GtkWidget *win, guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
@@ -228,16 +231,26 @@ GtkWidget *gfract_mandel_new(GtkWidget *win)
 	priv->win = win;
 	priv->type = 0;
 
+	priv->width = width;
+	priv->height = height;
+
+	gtk_widget_set_size_request(ret, width, height);
+
 	return ret;
 }
 
-GtkWidget *gfract_julia_new(GtkWidget *win)
+GtkWidget *gfract_julia_new(GtkWidget *win, guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
 	priv->win = win;
 	priv->type = 1;
+
+	priv->width = width;
+	priv->height = height;
+
+	gtk_widget_set_size_request(ret, width, height);
 
 	return ret;
 }
@@ -385,13 +398,13 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	if (priv->onscreen)
 		g_object_unref(priv->onscreen);
 	priv->draw = gdk_pixmap_new(fract->parent_widget->window,
-			widget->allocation.width, widget->allocation.height, -1);
+			priv->width, priv->height, -1);
 	priv->onscreen = gdk_pixmap_new(fract->parent_widget->window,
-			widget->allocation.width, widget->allocation.height, -1);
+			priv->width, priv->height, -1);
 	gdk_draw_rectangle(priv->onscreen, widget->style->black_gc, TRUE, 0, 0,
-			widget->allocation.width, widget->allocation.height);
+			priv->width, priv->height);
 	mupoint_create_as_needed(&priv->mupoint,
-			widget->allocation.width, widget->allocation.height);
+			priv->width, priv->height);
 
 	gfract_compute(widget);
 
@@ -405,17 +418,16 @@ static gpointer threaded_mandel(gpointer data)
 
 	priv->stop_worker = false;
 
-	unsigned width = widget->allocation.width;
-	unsigned ticks = width / 16 + width / 128;
+	unsigned ticks = priv->width / 16 + priv->width / 128;
 
 	gdk_threads_enter();
 	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
 	gdk_threads_leave();
 
 	if (priv->type == 0)
-		mandel_do_mu(widget, 0, widget->allocation.width);
+		mandel_do_mu(widget, 0, priv->width);
 	else
-		julia_do_mu(widget, 0, widget->allocation.width);
+		julia_do_mu(widget, 0, priv->width);
 
 	if (priv->stop_worker)
 		goto cleanup;
@@ -453,8 +465,8 @@ static void mandel_draw(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	struct mupoint *m = &priv->mupoint;
-	unsigned width = widget->allocation.width;
-	unsigned height = widget->allocation.height;
+	unsigned width = priv->width;
+	unsigned height = priv->height;
 
 	unsigned ticked = 0;
 
@@ -507,8 +519,8 @@ static void mandel_doenergy(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->avgfactor.v = 0L;
 	priv->avgfactor.n = 0;
-	unsigned width = widget->allocation.width;
-	unsigned height = widget->allocation.height;
+	unsigned width = priv->width;
+	unsigned height = priv->height;
 	for (unsigned i = 0; i < width; i++)
 		for (unsigned j = 0; j < height; j++) {
 			if (priv->mupoint.mu[i][j] == 0)
@@ -522,7 +534,7 @@ static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	struct mupoint *m = &priv->mupoint;
-	unsigned height = widget->allocation.height;
+	unsigned height = priv->height;
 	long double x;
 	long double y;
 	long double acc = 0;
@@ -571,7 +583,7 @@ static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	struct mupoint *m = &priv->mupoint;
-	unsigned height = widget->allocation.height;
+	unsigned height = priv->height;
 	long double x;
 	long double y;
 	long double acc = 0;
@@ -659,8 +671,7 @@ static void box_limits(GtkWidget *widget,
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	unsigned n_height = MAX(sy, dy) - MIN(sy, dy);
-	unsigned n_width =
-		widget->allocation.width * n_height / widget->allocation.height;
+	unsigned n_width = priv->width * n_height / priv->height;
 	if (dx < sx)
 		n_width = -n_width;
 
@@ -692,9 +703,9 @@ void gfract_set_limits_box(GtkWidget *widget,
 void gfract_draw_box(GtkWidget *widget,
 		guint sx, guint sy, guint dx, guint dy)
 {
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	unsigned n_height = MAX(sy, dy) - MIN(sy, dy);
-	unsigned n_width = widget->allocation.width * n_height
-		/ widget->allocation.height;
+	unsigned n_width = priv->width * n_height / priv->height;
 
 	if (dx < sx)
 		n_width = -n_width;
@@ -809,8 +820,7 @@ GdkPixbuf *gfract_get_pixbuf(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return gdk_pixbuf_get_from_drawable(NULL,
-			priv->onscreen, NULL, 0, 0, 0, 0,
-			widget->allocation.width, widget->allocation.height);
+			priv->onscreen, NULL, 0, 0, 0, 0, priv->width, priv->height);
 }
 
 void gfract_set_maxit(GtkWidget *widget, glong maxit)
