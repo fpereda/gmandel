@@ -37,7 +37,7 @@
 
 struct orbit_point *julia_orbit(
 		unsigned maxit,
-		long double *x0, long double *y0,
+		long double *x_0, long double *y_0,
 		long double *cx, long double *cy,
 		unsigned *n)
 {
@@ -51,8 +51,8 @@ struct orbit_point *julia_orbit(
 	long double x2;
 	long double y2;
 
-	x = *x0;
-	y = *y0;
+	x = *x_0;
+	y = *y_0;
 
 	xc = *cx;
 	yc = *cy;
@@ -80,7 +80,7 @@ struct orbit_point *julia_orbit(
 
 unsigned julia_it(
 		unsigned maxit,
-		long double *x0, long double *y0,
+		long double *x_0, long double *y_0,
 		long double *cx, long double *cy,
 		long double *modulus)
 {
@@ -93,8 +93,8 @@ unsigned julia_it(
 	long double x2;
 	long double y2;
 
-	x = *x0;
-	y = *y0;
+	x = *x_0;
+	y = *y_0;
 
 	xc = *cx;
 	yc = *cy;
