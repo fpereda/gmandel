@@ -109,8 +109,7 @@ gfract_button_release(GtkWidget *widget, GdkEventButton *event);
 static gboolean gfract_motion(GtkWidget *widget, GdkEventMotion *event);
 static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
 static gpointer run_worker(gpointer data);
-static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
-static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n);
+static void do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void draw(GtkWidget *widget);
 static void doenergy(GtkWidget *widget);
 
@@ -423,10 +422,7 @@ static gpointer run_worker(gpointer data)
 	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
 	gdk_threads_leave();
 
-	if (priv->type == 0)
-		mandel_do_mu(widget, 0, priv->width);
-	else
-		julia_do_mu(widget, 0, priv->width);
+	do_mu(widget, 0, priv->width);
 
 	if (priv->stop_worker)
 		goto cleanup;
@@ -529,7 +525,7 @@ static void doenergy(GtkWidget *widget)
 		}
 }
 
-static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
+static void do_mu(GtkWidget *widget, unsigned begin, size_t n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	struct mupoint *m = &priv->mupoint;
@@ -548,57 +544,9 @@ static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n)
 				goto inc_and_cont;
 
 			long double modulus;
-			unsigned it = mandelbrot_it(priv->maxit, &x, &y, &modulus);
-
-			/* Renormalized formula for the escape radius.
-			 * Optimize away the case where it == 0
-			 */
-			if (it > 0) {
-				long double mu = it - logl(fabsl(logl(modulus)));
-				mu /= M_LN2;
-				m->mu[i + begin][j] = mu;
-				acc += mu;
-				nacc++;
-			} else
-				m->mu[i + begin][j] = 0L;
-inc_and_cont:
-			y -= paint_inc(widget);
-		}
-		x += paint_inc(widget);
-		if ((ticked++ & 15) == 0) {
-			if (priv->stop_worker)
-				return;
-			gdk_threads_enter();
-			gui_progress_tick(priv->progress);
-			gdk_threads_leave();
-		}
-	}
-
-	priv->avgfactor.v += acc;
-	priv->avgfactor.n += nacc;
-}
-
-static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n)
-{
-	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	struct mupoint *m = &priv->mupoint;
-	unsigned height = priv->height;
-	long double x;
-	long double y;
-	long double acc = 0;
-	unsigned nacc = 0;
-	unsigned ticked = 0;
-
-	x = priv->paint_limits.ulx + begin * paint_inc(widget);
-	for (unsigned i = 0; i < n; i++) {
-		y = priv->paint_limits.uly;
-		for (unsigned j = 0; j < height; j++) {
-			if (m->mu[i + begin][j] != -1L)
-				goto inc_and_cont;
-
-			long double modulus;
-			unsigned it = julia_it(priv->maxit,
-					&x, &y, &priv->cx, &priv->cy, &modulus);
+			unsigned it = priv->type == 0
+				? mandelbrot_it(priv->maxit, &x, &y, &modulus)
+				: julia_it(priv->maxit, &x, &y, &priv->cx, &priv->cy, &modulus);
 
 			/* Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
