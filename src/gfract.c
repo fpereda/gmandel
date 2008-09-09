@@ -562,7 +562,7 @@ static void do_mu(GtkWidget *widget, unsigned begin, size_t n)
 			if (it > 0) {
 				long double mu = it - logl(fabsl(logl(modulus)));
 				mu /= M_LN2;
-				m->mu[i + begin][j] = mu;
+				m->mu[i + begin][j] = mu < 0 ? 0 : mu;
 				acc += mu;
 				nacc++;
 			} else
