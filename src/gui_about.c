@@ -74,7 +74,7 @@ void gui_about_show(GtkWidget *parent)
 	gtk_show_about_dialog(GTK_WINDOW(parent),
 			"authors", authors,
 			"copyright",
-			"Copyright (c) 2007, Fernando J. Pereda <ferdy@ferdyx.org>\n"
+			"Copyright (c) 2008, Fernando J. Pereda <ferdy@ferdyx.org>\n"
 			"All rights reserved",
 			"comments",
 			"Efficient Mandelbrot set exploration program",
