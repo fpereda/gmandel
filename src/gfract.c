@@ -215,6 +215,11 @@ static void gfract_mandel_finalize(GObject *object)
 		priv->states = NULL;
 	}
 
+	if (priv->worker) {
+		g_thread_join(priv->worker);
+		priv->worker = NULL;
+	}
+
 	mupoint_free(&priv->mupoint);
 
 	if (G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize)
@@ -403,6 +408,9 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 			priv->width, priv->height);
 	mupoint_create_as_needed(&priv->mupoint,
 			priv->width, priv->height);
+
+	g_object_ref_sink(priv->draw);
+	g_object_ref_sink(priv->onscreen);
 
 	gfract_compute(widget);
 

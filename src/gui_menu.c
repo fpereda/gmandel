@@ -123,6 +123,8 @@ GtkWidget *gui_menu_build(GtkWidget *window, gpointer data)
 	gchar *ui_desc = g_strconcat(
 			ui_desc_pre, themes_menu_desc, ui_desc_post, NULL);
 
+	g_free(themes_menu_desc);
+
 	GtkActionGroup *action_group = gtk_action_group_new("MenuActions");
 	gtk_action_group_add_actions(
 			action_group, entries, G_N_ELEMENTS(entries), data);
