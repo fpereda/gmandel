@@ -111,8 +111,8 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event);
 static gpointer run_worker(gpointer data);
 static void mandel_do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void julia_do_mu(GtkWidget *widget, unsigned begin, size_t n);
-static void mandel_draw(GtkWidget *widget);
-static void mandel_doenergy(GtkWidget *widget);
+static void draw(GtkWidget *widget);
+static void doenergy(GtkWidget *widget);
 
 static inline long double paint_inc(GtkWidget *widget)
 {
@@ -432,13 +432,13 @@ static gpointer run_worker(gpointer data)
 		goto cleanup;
 
 	if (priv->do_energy)
-		mandel_doenergy(widget);
+		doenergy(widget);
 	priv->do_energy = false;
 
 	if (priv->stop_worker)
 		goto cleanup;
 
-	mandel_draw(widget);
+	draw(widget);
 
 	if (priv->stop_worker)
 		goto cleanup;
@@ -460,7 +460,7 @@ cleanup:
 	return data;
 }
 
-static void mandel_draw(GtkWidget *widget)
+static void draw(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	struct mupoint *m = &priv->mupoint;
@@ -513,7 +513,7 @@ static void mandel_draw(GtkWidget *widget)
 	gdk_threads_leave();
 }
 
-static void mandel_doenergy(GtkWidget *widget)
+static void doenergy(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->avgfactor.v = 0L;
