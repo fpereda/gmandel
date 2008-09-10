@@ -118,7 +118,7 @@ static bool gmandel_strtod(
 	return !err;
 }
 
-static bool loader_0(struct gui_params *gui, FILE *file)
+static bool loader_1(struct gui_params *gui, FILE *file)
 {
 	char buf[BUFSIZ];
 	unsigned long maxit;
@@ -150,11 +150,6 @@ static bool loader_0(struct gui_params *gui, FILE *file)
 	gfract_history_clear(gui->fract);
 
 	return true;
-}
-
-static bool loader_1(struct gui_params *gui, FILE *file)
-{
-	return loader_0(gui, file);
 }
 
 static bool loader_2(struct gui_params *gui, FILE *file)
@@ -196,7 +191,7 @@ static bool loader_2(struct gui_params *gui, FILE *file)
 }
 
 enum {
-	GMANDEL_STATE_0,
+	GMANDEL_STATE_0 = 0, /* old, unsupported, format */
 	GMANDEL_STATE_1,
 	GMANDEL_STATE_2,
 	GMANDEL_STATE_CURRENT = GMANDEL_STATE_2,
@@ -210,9 +205,10 @@ static const char *format_strings[] = {
 };
 
 static bool (*format_loaders[])(struct gui_params *, FILE *) = {
-	[GMANDEL_STATE_0] = loader_0,
+	[GMANDEL_STATE_0] = NULL,
 	[GMANDEL_STATE_1] = loader_1,
 	[GMANDEL_STATE_2] = loader_2,
+	[GMANDEL_STATE_LAST] = NULL,
 };
 
 bool gui_state_load(struct gui_params *gui)
@@ -249,21 +245,24 @@ bool gui_state_load(struct gui_params *gui)
 
 	gmandel_stripnl(buf);
 
-	unsigned l = GMANDEL_STATE_0;
-	for (unsigned i = GMANDEL_STATE_CURRENT; i > GMANDEL_STATE_0; i--)
-		if (strcmp(buf, format_strings[i]) == 0)
-			l = i;
-	if (l == GMANDEL_STATE_0)
-		rewind(file);
+	bool found = false;
+	for (unsigned i = GMANDEL_STATE_CURRENT; i > GMANDEL_STATE_0; i--) {
+		if (strcmp(buf, format_strings[i]) != 0)
+			continue;
+		found = true;
+		err = !(*format_loaders[i])(gui, file);
+		break;
+	}
 
-	err = !(*format_loaders[l])(gui, file);
+	if (!found)
+		gui_report_error(gui->window, "Unsupported format");
 
 bad_file:
 	fclose(file);
 	if (err)
-		gui_status_set("Error when loading current state from %s", filename);
+		gui_status_set("Error while loading current state from %s", filename);
 	else
-		gui_status_set("Correctly loaded current state %s", filename);
+		gui_status_set("Loaded state from %s", filename);
 cleanup:
 	gtk_widget_destroy(fc);
 	g_free(filename);
