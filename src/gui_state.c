@@ -40,6 +40,13 @@
 #include "gui_report.h"
 #include "gui_status.h"
 #include "gfract.h"
+#include "xfuncs.h"
+
+struct observer_state {
+	double ulx;
+	double uly;
+	double lly;
+};
 
 static void gmandel_stripnl(char *s)
 {
@@ -140,6 +147,8 @@ static bool loader_0(struct gui_params *gui, FILE *file)
 	gfract_set_maxit(gui->fract, maxit);
 	gfract_set_limits(gui->fract, ulx, uly, lly);
 
+	gfract_history_clear(gui->fract);
+
 	return true;
 }
 
@@ -148,21 +157,62 @@ static bool loader_1(struct gui_params *gui, FILE *file)
 	return loader_0(gui, file);
 }
 
+static bool loader_2(struct gui_params *gui, FILE *file)
+{
+	if (!loader_1(gui, file))
+		return false;
+
+	char buf[BUFSIZ];
+
+	unsigned long num_elem;
+	if (!gmandel_fgets(gui->window, buf, sizeof(buf), file))
+		return false;
+	else if (!gmandel_strtoul(gui->window, "num_elem", buf, &num_elem))
+		return false;
+
+	GSList *nh = NULL;
+
+#define READ_VAR_DOUBLE(a) do { \
+	if (!gmandel_fgets(gui->window, buf, sizeof(buf), file)) \
+		return false; \
+	else if (!gmandel_strtod(gui->window, #a, buf, &(a))) \
+		return false; \
+} while (0);
+
+	while (num_elem--) {
+		struct observer_state *o = xmalloc(sizeof(*o));
+		READ_VAR_DOUBLE(o->ulx);
+		READ_VAR_DOUBLE(o->uly);
+		READ_VAR_DOUBLE(o->lly);
+		nh = g_slist_prepend(nh, o);
+	}
+
+#undef READ_VAR_DOUBLE
+
+	gfract_history_set(gui->fract, nh);
+	g_slist_free(nh);
+
+	return true;
+}
+
 enum {
 	GMANDEL_STATE_0,
 	GMANDEL_STATE_1,
-	GMANDEL_STATE_CURRENT = GMANDEL_STATE_1,
+	GMANDEL_STATE_2,
+	GMANDEL_STATE_CURRENT = GMANDEL_STATE_2,
 	GMANDEL_STATE_LAST,
 };
 
 static const char *format_strings[] = {
 	[GMANDEL_STATE_1] = "gmandel-1",
+	[GMANDEL_STATE_2] = "gmandel-2",
 	[GMANDEL_STATE_LAST] = NULL,
 };
 
 static bool (*format_loaders[])(struct gui_params *, FILE *) = {
 	[GMANDEL_STATE_0] = loader_0,
 	[GMANDEL_STATE_1] = loader_1,
+	[GMANDEL_STATE_2] = loader_2,
 };
 
 bool gui_state_load(struct gui_params *gui)
@@ -220,6 +270,11 @@ cleanup:
 	return !err;
 }
 
+void write_hist_entry(struct observer_state *o, FILE *f)
+{
+	fprintf(f, "%a\n%a\n%a\n", o->ulx, o->uly, o->lly);
+}
+
 bool gui_state_save(struct gui_params *gui)
 {
 	char *filename = NULL;
@@ -254,6 +309,12 @@ bool gui_state_save(struct gui_params *gui)
 	double ulx, uly, lly;
 	gfract_get_limits(gui->fract, &ulx, &uly, &lly);
 	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
+
+	GSList *hist = g_slist_reverse(gfract_history_get(gui->fract));
+	guint n = g_slist_length(hist);
+	fprintf(file, "%u\n", n);
+	g_slist_foreach(hist, (GFunc)write_hist_entry, file);
+
 	fclose(file);
 
 	gui_status_set("Correctly saved current state to %s", filename);

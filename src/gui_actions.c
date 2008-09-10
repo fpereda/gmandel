@@ -52,7 +52,6 @@ void handle_loadstate(GtkAction *action, gpointer data)
 	struct gui_params *gui = data;
 	if (!gui_state_load(gui))
 		return;
-	gfract_history_clear(gui->fract);
 	gfract_compute(gui->fract);
 }
 
