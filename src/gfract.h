@@ -66,8 +66,8 @@ struct _GFractMandelClass {
 	GtkDrawingAreaClass parent_class;
 };
 
-GtkWidget *gfract_mandel_new(GtkWidget *win, guint width, guint height);
-GtkWidget *gfract_julia_new(GtkWidget *win, guint width, guint height);
+GtkWidget *gfract_new_mandel(GtkWidget *win, guint width, guint height);
+GtkWidget *gfract_new_julia(GtkWidget *win, guint width, guint height);
 
 void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly);
@@ -85,13 +85,13 @@ void gfract_draw_box(GtkWidget *widget,
 
 void gfract_clean(GtkWidget *widget);
 
-void gfract_history_clear(GtkWidget *widget);
-void gfract_history_set(GtkWidget *widget, GSList *n);
-GSList *gfract_history_get(GtkWidget *widget);
+void gfract_clear_history(GtkWidget *widget);
+void gfract_set_history(GtkWidget *widget, GSList *n);
+GSList *gfract_get_history(GtkWidget *widget);
 
 void gfract_compute(GtkWidget *widget);
 void gfract_compute_partial(GtkWidget *widget);
-void gfract_mandel_redraw(GtkWidget *widget);
+void gfract_redraw(GtkWidget *widget);
 
 gboolean gfract_select_get_active(GtkWidget *widget);
 void gfract_select_set_active(GtkWidget *widget, gboolean active);
@@ -116,7 +116,7 @@ gfract_set_ratios(GtkWidget *widget, gfloat red, gfloat blue, gfloat green);
 void
 gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green);
 
-void gfract_julia_set_center(GtkWidget *widget, long double x, long double y);
+void gfract_set_center(GtkWidget *widget, long double x, long double y);
 
 void gfract_pixel_to_point(GtkWidget *widget,
 		unsigned px, unsigned py,

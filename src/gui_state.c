@@ -147,7 +147,7 @@ static bool loader_1(struct gui_params *gui, FILE *file)
 	gfract_set_maxit(gui->fract, maxit);
 	gfract_set_limits(gui->fract, ulx, uly, lly);
 
-	gfract_history_clear(gui->fract);
+	gfract_clear_history(gui->fract);
 
 	return true;
 }
@@ -184,7 +184,7 @@ static bool loader_2(struct gui_params *gui, FILE *file)
 
 #undef READ_VAR_DOUBLE
 
-	gfract_history_set(gui->fract, nh);
+	gfract_set_history(gui->fract, nh);
 	g_slist_free(nh);
 
 	return true;
@@ -309,7 +309,7 @@ bool gui_state_save(struct gui_params *gui)
 	gfract_get_limits(gui->fract, &ulx, &uly, &lly);
 	fprintf(file, "%d\n%a\n%a\n%a\n", maxit, ulx, uly, lly);
 
-	GSList *hist = g_slist_reverse(gfract_history_get(gui->fract));
+	GSList *hist = g_slist_reverse(gfract_get_history(gui->fract));
 	guint n = g_slist_length(hist);
 	fprintf(file, "%u\n", n);
 	g_slist_foreach(hist, (GFunc)write_hist_entry, file);

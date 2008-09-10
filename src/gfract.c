@@ -54,6 +54,11 @@ struct observer_state {
 	double lly;
 };
 
+enum gfract_type {
+	GFRACT_MANDEL = 0,
+	GFRACT_JULIA,
+};
+
 G_DEFINE_TYPE(GFractMandel, gfract_mandel, GTK_TYPE_DRAWING_AREA);
 
 #define GFRACT_MANDEL_GET_PRIVATE(obj) ( \
@@ -89,12 +94,7 @@ struct _GFractMandelPrivate {
 	} ratios;
 	unsigned width;
 	unsigned height;
-
-	/* TODO: Julia exploration 'done right'
-	 *  - Make two classes (GFractMandel and GFractJulia) deriving GFractWidget
-	 *  - Split julia-related members
-	 */
-	int type;
+	enum gfract_type type;
 	long double cx;
 	long double cy;
 };
@@ -226,13 +226,13 @@ static void gfract_mandel_finalize(GObject *object)
 		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
 
-GtkWidget *gfract_mandel_new(GtkWidget *win, guint width, guint height)
+GtkWidget *gfract_new_mandel(GtkWidget *win, guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
 	priv->win = win;
-	priv->type = 0;
+	priv->type = GFRACT_MANDEL;
 
 	priv->width = width;
 	priv->height = height;
@@ -242,13 +242,13 @@ GtkWidget *gfract_mandel_new(GtkWidget *win, guint width, guint height)
 	return ret;
 }
 
-GtkWidget *gfract_julia_new(GtkWidget *win, guint width, guint height)
+GtkWidget *gfract_new_julia(GtkWidget *win, guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
 	priv->win = win;
-	priv->type = 1;
+	priv->type = GFRACT_JULIA;
 
 	priv->width = width;
 	priv->height = height;
@@ -270,10 +270,10 @@ void gfract_compute_partial(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->avgfactor.v = 0;
 	priv->avgfactor.n = 0;
-	gfract_mandel_redraw(widget);
+	gfract_redraw(widget);
 }
 
-void gfract_mandel_redraw(GtkWidget *widget)
+void gfract_redraw(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (priv->worker)
@@ -553,7 +553,7 @@ static void do_mu(GtkWidget *widget, unsigned begin, size_t n)
 				goto inc_and_cont;
 
 			long double modulus;
-			unsigned it = priv->type == 0
+			unsigned it = priv->type == GFRACT_MANDEL
 				? mandelbrot_it(priv->maxit, &x, &y, &modulus)
 				: julia_it(priv->maxit, &x, &y, &priv->cx, &priv->cy, &modulus);
 
@@ -585,7 +585,7 @@ inc_and_cont:
 	priv->avgfactor.n += nacc;
 }
 
-void gfract_history_clear(GtkWidget *widget)
+void gfract_clear_history(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	g_slist_foreach(priv->states, (GFunc)free, NULL);
@@ -593,14 +593,14 @@ void gfract_history_clear(GtkWidget *widget)
 	priv->states = NULL;
 }
 
-void gfract_history_set(GtkWidget *widget, GSList *n)
+void gfract_set_history(GtkWidget *widget, GSList *n)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	gfract_history_clear(widget);
+	gfract_clear_history(widget);
 	priv->states = g_slist_copy(n);
 }
 
-GSList *gfract_history_get(GtkWidget *widget)
+GSList *gfract_get_history(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	return g_slist_copy(priv->states);
@@ -716,7 +716,7 @@ void gfract_draw_orbit(GtkWidget *widget, long double x, long double y)
 	};
 
 	unsigned n;
-	struct orbit_point *o = priv->type == 0
+	struct orbit_point *o = priv->type == GFRACT_MANDEL
 		? mandelbrot_orbit(priv->maxit, &x, &y, &n)
 		: julia_orbit(priv->maxit, &x, &y, &priv->cx, &priv->cy, &n);
 
@@ -867,7 +867,7 @@ gfract_get_ratios(GtkWidget *widget, gfloat *red, gfloat *blue, gfloat *green)
 		*green = priv->ratios.green;
 }
 
-void gfract_julia_set_center(GtkWidget *widget, long double x, long double y)
+void gfract_set_center(GtkWidget *widget, long double x, long double y)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->cx = x;

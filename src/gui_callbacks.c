@@ -65,7 +65,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 		gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-		GtkWidget *f = gfract_julia_new(window, 640, 480);
+		GtkWidget *f = gfract_new_julia(window, 640, 480);
 		gfract_set_limits(f, -2.0, 1.5, -1.5);
 
 		g_signal_connect(f, "button-press-event",
@@ -78,7 +78,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 
 		long double cx, cy;
 		gfract_pixel_to_point(widget, event->x, event->y, &cx, &cy);
-		gfract_julia_set_center(f, cx, cy);
+		gfract_set_center(f, cx, cy);
 
 		gchar *title = g_strdup_printf("Julia Set for c(%LG, %LG)", cx, cy);
 		gtk_window_set_title(GTK_WINDOW(window), title);

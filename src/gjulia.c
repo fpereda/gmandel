@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(window, "destroy",
 			G_CALLBACK(gtk_main_quit), NULL);
 
-	GtkWidget *f = gfract_julia_new(window, width, height);
+	GtkWidget *f = gfract_new_julia(window, width, height);
 	gfract_set_limits(f, ulx, uly, lly);
 	gfract_set_maxit(f, maxit);
 
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 			color_get(COLOR_THEME_GREENPARK)->blue,
 			color_get(COLOR_THEME_GREENPARK)->green);
 
-	gfract_julia_set_center(f, cx, cy);
+	gfract_set_center(f, cx, cy);
 
 	gchar *title = g_strdup_printf("Julia Set for c(%G, %G)", cx, cy);
 	gtk_window_set_title(GTK_WINDOW(window), title);

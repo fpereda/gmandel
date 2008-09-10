@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	g_signal_connect(window, "key-press-event",
 			G_CALLBACK(handle_keypress), &gui_state);
 
-	gui_state.fract = gfract_mandel_new(window, width, height);
+	gui_state.fract = gfract_new_mandel(window, width, height);
 	gfract_set_ratios(gui_state.fract,
 			color_get(COLOR_THEME_ICEBLUE)->red,
 			color_get(COLOR_THEME_ICEBLUE)->blue,

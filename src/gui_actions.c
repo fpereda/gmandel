@@ -64,7 +64,7 @@ void handle_restart(GtkAction *action, gpointer data)
 {
 	struct gui_params *gui = data;
 	gfract_set_limits_default(gui->fract);
-	gfract_history_clear(gui->fract);
+	gfract_clear_history(gui->fract);
 	gfract_compute(gui->fract);
 }
 
@@ -93,7 +93,7 @@ void theme_changed(
 					color_get(i)->red,
 					color_get(i)->blue,
 					color_get(i)->green);
-	gfract_mandel_redraw(gui->fract);
+	gfract_redraw(gui->fract);
 }
 
 void handle_about(GtkAction *action, gpointer data)
