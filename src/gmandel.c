@@ -37,7 +37,6 @@
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
-#include "stack.h"
 #include "xfuncs.h"
 #include "gui.h"
 #include "gui_callbacks.h"

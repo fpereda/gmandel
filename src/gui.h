@@ -36,8 +36,6 @@
 
 #include <gtk/gtk.h>
 
-#include "stack.h"
-
 struct gui_params {
 	GtkWidget *window;
 	GtkWidget *fract;

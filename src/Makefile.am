@@ -21,10 +21,9 @@ gmandel_SOURCES = gmandel.c xfuncs.h gui.h gfract_engines.h \
                   gui_save.c gui_save.h \
                   gui_state.c gui_state.h \
                   gui_status.c gui_status.h \
-                  mandelbrot.c mandelbrot.h \
                   julia.c julia.h \
-                  mupoint.c mupoint.h \
-                  stack.c stack.h
+                  mandelbrot.c mandelbrot.h \
+                  mupoint.c mupoint.h
 gmandel_LDADD = $(gtk_LIBS) $(gthread_LIBS) -lm
 
 # vim: set et:

@@ -40,7 +40,6 @@
 #include "color_filter.h"
 #include "mupoint.h"
 #include "gui_progress.h"
-#include "stack.h"
 #include "xfuncs.h"
 #include "gfract.h"
 #include "gfract_engines.h"
@@ -79,7 +78,7 @@ struct _GFractMandelPrivate {
 	bool do_energy;
 	unsigned select_orig_x;
 	unsigned select_orig_y;
-	stack *states;
+	GSList *states;
 	unsigned maxit;
 	GThread *worker;
 	bool stop_worker;
@@ -176,7 +175,7 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->maxit = 1000;
 
-	priv->states = stack_alloc_init(free);
+	priv->states = NULL;
 
 	priv->worker = NULL;
 	priv->stop_worker = false;
@@ -211,7 +210,8 @@ static void gfract_mandel_finalize(GObject *object)
 	}
 
 	if (priv->states) {
-		stack_destroy(priv->states);
+		g_slist_foreach(priv->states, (GFunc)free, NULL);
+		g_slist_free(priv->states);
 		priv->states = NULL;
 	}
 
@@ -296,11 +296,12 @@ gfract_button_press(GtkWidget *widget, GdkEventButton *event)
 		priv->select_orig_y = event->y;
 		priv->do_select = true;
 	} else if (event->button == 3) {
-		if (stack_empty(priv->states))
+		if (priv->states == NULL)
 			return FALSE;
-		struct observer_state *o = stack_pop(priv->states);
+		struct observer_state *o = priv->states->data;
 		memcpy(&priv->paint_limits, o, sizeof(*o));
-		priv->states->destroy(o);
+		priv->states = g_slist_remove(priv->states, o);
+		free(o);
 		gfract_compute(widget);
 	}
 
@@ -326,7 +327,7 @@ gfract_button_release(GtkWidget *widget, GdkEventButton *event)
 
 	struct observer_state *o = xmalloc(sizeof(*o));
 	memcpy(o, &priv->paint_limits, sizeof(*o));
-	stack_push(priv->states, o);
+	priv->states = g_slist_prepend(priv->states, o);
 
 	gfract_set_limits_box(widget,
 			priv->select_orig_x, priv->select_orig_y,
@@ -587,8 +588,9 @@ inc_and_cont:
 void gfract_history_clear(GtkWidget *widget)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	while (!stack_empty(priv->states))
-		priv->states->destroy(stack_pop(priv->states));
+	g_slist_foreach(priv->states, (GFunc)free, NULL);
+	g_slist_free(priv->states);
+	priv->states = NULL;
 }
 
 void gfract_get_limits(GtkWidget *widget,
@@ -812,10 +814,11 @@ void gfract_stop(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->stop_worker = true;
 
-	if (!stack_empty(priv->states)) {
-		struct observer_state *o = stack_pop(priv->states);
+	if (priv->states) {
+		struct observer_state *o = priv->states->data;
 		memcpy(&priv->paint_limits, o, sizeof(*o));
-		priv->states->destroy(o);
+		priv->states = g_slist_remove(priv->states, o);
+		free(o);
 	}
 }
 
