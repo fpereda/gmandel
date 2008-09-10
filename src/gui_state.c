@@ -41,6 +41,28 @@
 #include "gui_status.h"
 #include "gfract.h"
 
+static void gmandel_stripnl(char *s)
+{
+	for (; s && *s; s++)
+		if (*s == '\n')
+			*s = '\0';
+}
+
+static bool gmandel_fgets(GtkWidget *window, char *buf, int n, FILE *file)
+{
+	if (fgets(buf, n, file) != NULL) {
+		gmandel_stripnl(buf);
+		return true;
+	}
+
+	if (feof(file))
+		gui_report_error(window, "Unexpected EOF");
+	else if (ferror(file))
+		gui_report_error(window, "Unexpected error");
+
+	return false;
+}
+
 static bool gmandel_strtoul(
 		GtkWidget *window, const char *var,
 		const char *nptr, unsigned long *value)
@@ -89,47 +111,24 @@ static bool gmandel_strtod(
 	return !err;
 }
 
-bool gui_state_load(struct gui_params *gui)
+static bool loader_0(struct gui_params *gui, FILE *file)
 {
-	char *filename = NULL;
-	bool err = true;
-
-	GtkWidget *fc = gtk_file_chooser_dialog_new(
-			"Load a state",	GTK_WINDOW(gui->window),
-			GTK_FILE_CHOOSER_ACTION_OPEN,
-			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-			NULL);
-	gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(fc), TRUE);
-
-	if (gtk_dialog_run(GTK_DIALOG(fc)) != GTK_RESPONSE_ACCEPT)
-		goto cleanup;
-
-	err = false;
-
-	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fc));
-
-	FILE *file = fopen(filename, "r");
-	if (file == NULL) {
-		gui_report_error(gui->window, "Error loading the state file '%s': %s",
-				filename, g_strerror(errno));
-		goto cleanup;
-	}
-
 	char buf[BUFSIZ];
 	unsigned long maxit;
 	double ulx;
 	double uly;
 	double lly;
 
-	fgets(buf, sizeof(buf), file);
-	if ((err = !gmandel_strtoul(gui->window, "maxit", buf, &maxit)))
-		goto bad_file;
+	if (!gmandel_fgets(gui->window, buf, sizeof(buf), file))
+		return false;
+	else if (!gmandel_strtoul(gui->window, "maxit", buf, &maxit))
+		return false;
 
 #define READ_VAR_DOUBLE(a) do { \
-	fgets(buf, sizeof(buf), file); \
-	if ((err = !gmandel_strtod(gui->window, #a, buf, &(a)))) \
-		goto bad_file; \
+	if (!gmandel_fgets(gui->window, buf, sizeof(buf), file)) \
+		return false; \
+	else if (!gmandel_strtod(gui->window, #a, buf, &(a))) \
+		return false; \
 } while (0);
 
 	READ_VAR_DOUBLE(ulx);
@@ -141,13 +140,80 @@ bool gui_state_load(struct gui_params *gui)
 	gfract_set_maxit(gui->fract, maxit);
 	gfract_set_limits(gui->fract, ulx, uly, lly);
 
-	gui_status_set("Correctly loaded current state %s", filename);
+	return true;
+}
+
+static bool loader_1(struct gui_params *gui, FILE *file)
+{
+	return loader_0(gui, file);
+}
+
+enum {
+	GMANDEL_STATE_0,
+	GMANDEL_STATE_1,
+	GMANDEL_STATE_CURRENT = GMANDEL_STATE_1,
+	GMANDEL_STATE_LAST,
+};
+
+static const char *format_strings[] = {
+	[GMANDEL_STATE_1] = "gmandel-1",
+	[GMANDEL_STATE_LAST] = NULL,
+};
+
+static bool (*format_loaders[])(struct gui_params *, FILE *) = {
+	[GMANDEL_STATE_0] = loader_0,
+	[GMANDEL_STATE_1] = loader_1,
+};
+
+bool gui_state_load(struct gui_params *gui)
+{
+	char *filename = NULL;
+	bool err = true;
+
+	GtkWidget *fc = gtk_file_chooser_dialog_new(
+			"Load a state",	GTK_WINDOW(gui->window),
+			GTK_FILE_CHOOSER_ACTION_OPEN,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+			NULL);
+	g_object_ref_sink(fc);
+	gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(fc), TRUE);
+
+	if (gtk_dialog_run(GTK_DIALOG(fc)) != GTK_RESPONSE_ACCEPT)
+		goto cleanup;
+
+	filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(fc));
+
+	FILE *file = fopen(filename, "r");
+	if (file == NULL) {
+		gui_report_error(gui->window, "Could not open '%s': %s",
+				filename, g_strerror(errno));
+		goto cleanup;
+	}
+
+	char buf[BUFSIZ];
+	if (!gmandel_fgets(gui->window, buf, sizeof(buf), file)) {
+		err = true;
+		goto bad_file;
+	}
+
+	gmandel_stripnl(buf);
+
+	unsigned l = GMANDEL_STATE_0;
+	for (unsigned i = GMANDEL_STATE_CURRENT; i > GMANDEL_STATE_0; i--)
+		if (strcmp(buf, format_strings[i]) == 0)
+			l = i;
+	if (l == GMANDEL_STATE_0)
+		rewind(file);
+
+	err = !(*format_loaders[l])(gui, file);
 
 bad_file:
+	fclose(file);
 	if (err)
 		gui_status_set("Error when loading current state from %s", filename);
-	fclose(file);
-
+	else
+		gui_status_set("Correctly loaded current state %s", filename);
 cleanup:
 	gtk_widget_destroy(fc);
 	g_free(filename);
@@ -181,6 +247,9 @@ bool gui_state_save(struct gui_params *gui)
 		err = true;
 		goto cleanup;
 	}
+
+	fprintf(file, "%s\n", format_strings[GMANDEL_STATE_CURRENT]);
+
 	unsigned int maxit = gfract_get_maxit(gui->fract);
 	double ulx, uly, lly;
 	gfract_get_limits(gui->fract, &ulx, &uly, &lly);
