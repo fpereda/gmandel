@@ -593,6 +593,19 @@ void gfract_history_clear(GtkWidget *widget)
 	priv->states = NULL;
 }
 
+void gfract_history_set(GtkWidget *widget, GSList *n)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	gfract_history_clear(widget);
+	priv->states = g_slist_copy(n);
+}
+
+GSList *gfract_history_get(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	return g_slist_copy(priv->states);
+}
+
 void gfract_get_limits(GtkWidget *widget,
 		gdouble *ulx, gdouble *uly, gdouble *lly)
 {

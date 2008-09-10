@@ -86,6 +86,8 @@ void gfract_draw_box(GtkWidget *widget,
 void gfract_clean(GtkWidget *widget);
 
 void gfract_history_clear(GtkWidget *widget);
+void gfract_history_set(GtkWidget *widget, GSList *n);
+GSList *gfract_history_get(GtkWidget *widget);
 
 void gfract_compute(GtkWidget *widget);
 void gfract_compute_partial(GtkWidget *widget);
