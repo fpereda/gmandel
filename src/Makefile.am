@@ -6,7 +6,7 @@ AM_CFLAGS = $(GMANDEL_CFLAGS) -D_XOPEN_SOURCE=600 \
 
 SUBDIRS = .
 
-bin_PROGRAMS = gmandel gjulia
+bin_PROGRAMS = gmandel gjulia gjulia-video
 noinst_LIBRARIES = libgfract.a
 
 libgfract_a_SOURCES = xfuncs.h gfract_engines.h \
@@ -32,5 +32,8 @@ gmandel_LDADD = $(gtk_LIBS) $(gthread_LIBS) libgfract.a -lm
 gjulia_SOURCES = gjulia.c \
                  color.c color.h
 gjulia_LDADD = $(gtk_LIBS) $(gthread_LIBS) libgfract.a -lm
+
+gjulia_video_SOURCES = gjulia-video.c color.c color.h
+gjulia_video_LDADD = $(gtk_LIBS) $(gthread_LIBS) libgfract.a -lm
 
 # vim: set et:

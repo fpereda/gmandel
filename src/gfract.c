@@ -78,6 +78,7 @@ struct _GFractMandelPrivate {
 		unsigned n;
 	} avgfactor;
 	struct gui_progress *progress;
+	bool do_progress;
 	bool do_select;
 	bool do_orbits;
 	bool do_energy;
@@ -186,6 +187,8 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->cx = priv->cy = 0.0;
 
+	priv->do_progress = true;
+
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
 			| GDK_BUTTON_RELEASE_MASK
@@ -278,7 +281,10 @@ void gfract_redraw(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (priv->worker)
 		g_thread_join(priv->worker);
-	priv->worker = g_thread_create(run_worker, widget, TRUE, NULL);
+	if (priv->do_progress)
+		priv->worker = g_thread_create(run_worker, widget, TRUE, NULL);
+	else
+		run_worker(widget);
 }
 
 static gboolean
@@ -427,9 +433,12 @@ static gpointer run_worker(gpointer data)
 
 	unsigned ticks = priv->width / 16 + priv->width / 128;
 
-	gdk_threads_enter();
-	priv->progress = gui_progress_start(priv->win, ticks, gfract_stop, widget);
-	gdk_threads_leave();
+	if (priv->do_progress) {
+		gdk_threads_enter();
+		priv->progress = gui_progress_start(priv->win, ticks,
+				gfract_stop, widget);
+		gdk_threads_leave();
+	}
 
 	do_mu(widget, 0, priv->width);
 
@@ -453,10 +462,12 @@ static gpointer run_worker(gpointer data)
 	priv->draw = aux;
 
 cleanup:
-	gdk_threads_enter();
-	gui_progress_end(priv->progress);
-	gdk_threads_leave();
-	priv->progress = NULL;
+	if (priv->do_progress) {
+		gdk_threads_enter();
+		gui_progress_end(priv->progress);
+		gdk_threads_leave();
+		priv->progress = NULL;
+	}
 
 	gdk_threads_enter();
 	gdk_window_invalidate_rect(widget->window, NULL, TRUE);
@@ -504,7 +515,7 @@ static void draw(GtkWidget *widget)
 			gdk_draw_point(priv->draw, gc, i, j);
 			gdk_threads_leave();
 		}
-		if ((ticked++ & 127) == 0) {
+		if (priv->do_progress && (ticked++ & 127) == 0) {
 			if (priv->stop_worker)
 				return;
 			gdk_threads_enter();
@@ -572,7 +583,7 @@ inc_and_cont:
 			y -= paint_inc(widget);
 		}
 		x += paint_inc(widget);
-		if ((ticked++ & 15) == 0) {
+		if (priv->do_progress && (ticked++ & 15) == 0) {
 			if (priv->stop_worker)
 				return;
 			gdk_threads_enter();
@@ -872,4 +883,16 @@ void gfract_set_center(GtkWidget *widget, long double x, long double y)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->cx = x;
 	priv->cy = y;
+}
+
+void gfract_set_do_progress(GtkWidget *widget, gboolean d)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->do_progress = d == TRUE ? true : false;
+}
+
+gboolean gfract_get_do_progress(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	return priv->do_progress ? TRUE : FALSE;
 }

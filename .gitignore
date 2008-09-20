@@ -11,6 +11,7 @@ config
 configure
 src/gmandel
 src/gjulia
+src/gjulia-video
 stamp-h1
 *.swp
 config.h
