@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
 	double uly = 1.5;
 	double lly = -1.5;
 
-	g_thread_init(NULL);
-
 	gtk_init(&argc, &argv);
 
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -108,29 +106,17 @@ int main(int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(window), f);
 	gtk_widget_show_all(window);
 
-	double granularity = 0.01;
+	double granularity = 0.1;
 	double t;
 	unsigned i = 0;
 
-	/* cardioid */
-	for (t = 0.0; t < 2 * M_PI; t += granularity)
+	/* following cardioid -> neck */
+	for (t = 0.0; t < M_PI; t += granularity)
 		do_image_for_point(window, f, i++,
 				imaginary_cardioid_from_theta(t));
 
-	/* cardioid -> smallest replica */
-	for (t = 0.25; t > -1.8; t -= granularity) {
-		struct point p = { .x = t, .y = 0 };
-		do_image_for_point(window, f, i++, p);
-	}
-
-	/* smallest replica -> neck */
-	for (; t < -0.75; t += granularity) {
-		struct point p = { .x = t, .y = 0 };
-		do_image_for_point(window, f, i++, p);
-	}
-
 	/* neck -> above neck */
-	for (t = 0.0; t < 0.5; t += granularity) {
+	for (t = 0.0; t < 0.5; t += granularity/10) {
 		struct point p = { .x = -0.75, .y = t };
 		do_image_for_point(window, f, i++, p);
 	}
@@ -141,8 +127,14 @@ int main(int argc, char *argv[])
 		do_image_for_point(window, f, i++, p);
 	}
 
-	/* neck -> cardioid -> back */
-	for (t = -0.75; t < 0.53; t += granularity) {
+	/* neck -> end */
+	for (t = -0.75; t > -(2.0 + 2 * granularity); t -= granularity) {
+		struct point p = { .x = t, .y = 0 };
+		do_image_for_point(window, f, i++, p);
+	}
+
+	/* end -> neck -> cardioid -> back */
+	for (; t < 1; t += granularity) {
 		struct point p = { .x = t, .y = 0 };
 		do_image_for_point(window, f, i++, p);
 	}
