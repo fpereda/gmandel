@@ -80,8 +80,19 @@ AC_SUBST([GMANDEL_CFLAGS])
 dnl }}}
 
 dnl {{{ GTK+ and GDK
-PKG_CHECK_MODULES(gtk, [gtk+-2.0 >= 2.10.0])
-PKG_CHECK_MODULES(gthread, [gthread-2.0 >= 2.10.0])
+AC_MSG_CHECKING([whether to use Gtk-OSX])
+AC_ARG_WITH([gtk-osx],
+            AS_HELP_STRING([--with-gtk-osx], [Use Gtk-OSX]),
+            WANT_GTKOSX=$withval,
+            WANT_GTKOSX=no)
+AC_MSG_RESULT([$WANT_GTKOSX])
+AC_SUBST([WANT_GTKOSX])
+AM_CONDITIONAL([WANT_GTKOSX], test "x$WANT_GTKOSX" = "xyes")
+
+if test x"$WANT_GTKOSX" = "xno" ; then
+   PKG_CHECK_MODULES(gtk, [gtk+-2.0 >= 2.10.0])
+   PKG_CHECK_MODULES(gthread, [gthread-2.0 >= 2.10.0])
+fi
 dnl }}}
 
 dnl Makefile generation
