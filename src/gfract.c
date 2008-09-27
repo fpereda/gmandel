@@ -934,6 +934,7 @@ static void progress_start(GtkWidget *widget, unsigned ticks)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->progress_cur = 0;
 	priv->progress_stp = 1.0L / ticks;
+	gtk_widget_set_sensitive(widget, FALSE);
 	if (priv->progress_hook_start)
 		(*priv->progress_hook_start)(priv->progress_hook_start_data);
 }
@@ -959,6 +960,7 @@ static void progress_finish(GtkWidget *widget)
 	priv->progress_stp = 0;
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(priv->progress), NULL);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(priv->progress), 0.0L);
+	gtk_widget_set_sensitive(widget, TRUE);
 	if (priv->progress_hook_finish)
 		(*priv->progress_hook_finish)(priv->progress_hook_finish_data);
 }

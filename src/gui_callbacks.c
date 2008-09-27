@@ -123,6 +123,9 @@ gboolean handle_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
 	struct gui_params *gui = data;
 	int nextmaxit = gfract_get_maxit(gui->fract);
 
+	if (!GTK_WIDGET_SENSITIVE(gui->fract))
+		return FALSE;
+
 #define EVENT_KEYVAL_EITHER(a, b) \
 	(event->keyval == (a) || event->keyval == (b))
 
