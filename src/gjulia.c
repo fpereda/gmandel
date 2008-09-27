@@ -36,6 +36,16 @@
 #include "gfract.h"
 #include "color.h"
 
+static void set_sensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, TRUE);
+}
+
+static void set_insensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, FALSE);
+}
+
 static gboolean handle_julia_click(GtkWidget *widget, GdkEventButton *event)
 {
 	if (event->button == 2) {
@@ -107,7 +117,24 @@ int main(int argc, char *argv[])
 	gtk_window_set_title(GTK_WINDOW(window), title);
 	g_free(title);
 
-	gtk_container_add(GTK_CONTAINER(window), f);
+	GtkWidget *progbox = gtk_hbox_new(FALSE, 0);
+	GtkWidget *prog = gtk_progress_bar_new();
+	GtkWidget *stopb = gtk_button_new_from_stock(GTK_STOCK_STOP);
+	g_signal_connect_swapped(stopb, "clicked",
+			G_CALLBACK(gfract_stop), f);
+	gtk_box_pack_start_defaults(GTK_BOX(progbox), prog);
+	gtk_box_pack_start(GTK_BOX(progbox), stopb, FALSE, FALSE, 0);
+
+	GtkWidget *layout = gtk_vbox_new(FALSE, 2);
+	gtk_container_add(GTK_CONTAINER(layout), progbox);
+	gtk_container_add(GTK_CONTAINER(layout), f);
+
+	gtk_container_add(GTK_CONTAINER(window), layout);
+
+	gfract_set_progress(f, prog);
+	gfract_set_progress_hook_start(f, set_sensitive, stopb);
+	gfract_set_progress_hook_finish(f, set_insensitive, stopb);
+
 	gtk_widget_show_all(window);
 
 	gtk_main();

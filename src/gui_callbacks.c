@@ -42,6 +42,16 @@
 #include "gfract.h"
 #include "color.h"
 
+static void set_sensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, TRUE);
+}
+
+static void set_insensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, FALSE);
+}
+
 static gboolean handle_julia_click(GtkWidget *widget, GdkEventButton *event)
 {
 	if (event->button == 2) {
@@ -98,6 +108,8 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		gtk_container_add(GTK_CONTAINER(window), layout);
 
 		gfract_set_progress(f, prog);
+		gfract_set_progress_hook_start(f, set_sensitive, stopb);
+		gfract_set_progress_hook_finish(f, set_insensitive, stopb);
 
 		gtk_widget_show_all(window);
 	} else
