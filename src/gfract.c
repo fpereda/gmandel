@@ -79,6 +79,10 @@ struct _GFractMandelPrivate {
 	GtkWidget *progress;
 	float progress_stp;
 	float progress_cur;
+	void (*progress_hook_start)(gpointer);
+	void (*progress_hook_finish)(gpointer);
+	gpointer progress_hook_start_data;
+	gpointer progress_hook_finish_data;
 	bool configured;
 	bool do_select;
 	bool do_orbits;
@@ -195,6 +199,10 @@ static void gfract_mandel_init(GFractMandel *fract)
 	priv->progress = NULL;
 	priv->progress_stp = 0;
 	priv->progress_cur = 0;
+	priv->progress_hook_start = NULL;
+	priv->progress_hook_finish = NULL;
+	priv->progress_hook_start_data = NULL;
+	priv->progress_hook_finish_data = NULL;
 
 	priv->configured = false;
 
@@ -903,11 +911,31 @@ void gfract_set_progress(GtkWidget *widget, GtkWidget *progress)
 	priv->progress = progress;
 }
 
+void
+gfract_set_progress_hook_start(GtkWidget *widget,
+		void (*f)(gpointer), gpointer  data)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->progress_hook_start = f;
+	priv->progress_hook_start_data = data;
+}
+
+void
+gfract_set_progress_hook_finish(GtkWidget *widget,
+		void (*f)(gpointer), gpointer data)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->progress_hook_finish = f;
+	priv->progress_hook_finish_data = data;
+}
+
 static void progress_start(GtkWidget *widget, unsigned ticks)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	priv->progress_cur = 0;
 	priv->progress_stp = 1.0L / ticks;
+	if (priv->progress_hook_start)
+		(*priv->progress_hook_start)(priv->progress_hook_start_data);
 }
 
 static void progress_tick(GtkWidget *widget)
@@ -931,4 +959,6 @@ static void progress_finish(GtkWidget *widget)
 	priv->progress_stp = 0;
 	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(priv->progress), NULL);
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(priv->progress), 0.0L);
+	if (priv->progress_hook_finish)
+		(*priv->progress_hook_finish)(priv->progress_hook_finish_data);
 }

@@ -46,6 +46,16 @@
 
 #include "gfract.h"
 
+static void set_sensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, TRUE);
+}
+
+static void set_insensitive(gpointer data)
+{
+	gtk_widget_set_sensitive(data, FALSE);
+}
+
 int main(int argc, char *argv[])
 {
 	unsigned width;
@@ -101,6 +111,10 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start_defaults(GTK_BOX(layout), progbox);
 
 	gfract_set_progress(gui_state.fract, prog);
+	gfract_set_progress_hook_start(gui_state.fract,
+			set_sensitive, stopb);
+	gfract_set_progress_hook_finish(gui_state.fract,
+			set_insensitive, stopb);
 
 	gtk_box_pack_start_defaults(GTK_BOX(layout), gui_state.fract);
 	gtk_box_pack_start_defaults(GTK_BOX(layout), gui_status_build());

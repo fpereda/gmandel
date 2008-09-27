@@ -123,7 +123,11 @@ void gfract_pixel_to_point(GtkWidget *widget,
 		long double *x, long double *y);
 
 void gfract_set_progress(GtkWidget *widget, GtkWidget *progress);
-void gfract_set_progress_show_hide(GtkWidget *widget, gboolean s);
+
+void gfract_set_progress_hook_start(GtkWidget *widget,
+		void (*f)(gpointer), gpointer  data);
+void gfract_set_progress_hook_finish(GtkWidget *widget,
+		void (*f)(gpointer), gpointer  data);
 
 G_END_DECLS
 
