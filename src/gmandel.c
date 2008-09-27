@@ -40,7 +40,6 @@
 #include "xfuncs.h"
 #include "gui.h"
 #include "gui_callbacks.h"
-#include "gui_progress.h"
 #include "gui_menu.h"
 #include "gui_status.h"
 #include "color.h"
@@ -88,15 +87,28 @@ int main(int argc, char *argv[])
 	g_signal_connect(gui_state.fract, "button-press-event",
 			G_CALLBACK(handle_click), NULL);
 
-	GtkWidget *lyout_top = gtk_vbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(lyout_top),
+	GtkWidget *layout = gtk_vbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(layout),
 			gui_menu_build(window, &gui_state), FALSE, FALSE, 0);
-	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), gui_state.fract);
-	gtk_box_pack_start_defaults(GTK_BOX(lyout_top), gui_status_build());
 
-	gtk_container_add(GTK_CONTAINER(window), lyout_top);
+	GtkWidget *progbox = gtk_hbox_new(FALSE, 0);
+	GtkWidget *prog = gtk_progress_bar_new();
+	GtkWidget *stopb = gtk_button_new_from_stock(GTK_STOCK_STOP);
+	g_signal_connect_swapped(stopb, "clicked",
+			G_CALLBACK(gfract_stop), gui_state.fract);
+	gtk_box_pack_start_defaults(GTK_BOX(progbox), prog);
+	gtk_box_pack_start(GTK_BOX(progbox), stopb, FALSE, FALSE, 0);
+	gtk_box_pack_start_defaults(GTK_BOX(layout), progbox);
+
+	gfract_set_progress(gui_state.fract, prog);
+
+	gtk_box_pack_start_defaults(GTK_BOX(layout), gui_state.fract);
+	gtk_box_pack_start_defaults(GTK_BOX(layout), gui_status_build());
+
+	gtk_container_add(GTK_CONTAINER(window), layout);
 
 	gtk_widget_show_all(window);
+
 	gtk_main();
 
 	gdk_threads_leave();

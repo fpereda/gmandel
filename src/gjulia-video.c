@@ -101,7 +101,6 @@ int main(int argc, char *argv[])
 			color_get(COLOR_THEME_GREENPARK)->red,
 			color_get(COLOR_THEME_GREENPARK)->blue,
 			color_get(COLOR_THEME_GREENPARK)->green);
-	gfract_set_do_progress(f, FALSE);
 
 	gtk_container_add(GTK_CONTAINER(window), f);
 	gtk_widget_show_all(window);

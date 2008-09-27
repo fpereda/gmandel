@@ -35,7 +35,6 @@ noinst_LIBRARIES = libgfract.a
 libgfract_a_SOURCES = xfuncs.h gfract_engines.h \
                       color_filter.c color_filter.h \
                       gfract.c gfract.h \
-                      gui_progress.c gui_progress.h \
                       julia.c julia.h \
                       mandelbrot.c mandelbrot.h \
                       mupoint.c mupoint.h

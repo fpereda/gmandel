@@ -39,7 +39,6 @@
 #include "julia.h"
 #include "color_filter.h"
 #include "mupoint.h"
-#include "gui_progress.h"
 #include "xfuncs.h"
 #include "gfract.h"
 #include "gfract_engines.h"
@@ -77,8 +76,10 @@ struct _GFractMandelPrivate {
 		long double v;
 		unsigned n;
 	} avgfactor;
-	struct gui_progress *progress;
-	bool do_progress;
+	GtkWidget *progress;
+	float progress_stp;
+	float progress_cur;
+	bool configured;
 	bool do_select;
 	bool do_orbits;
 	bool do_energy;
@@ -112,6 +113,10 @@ static gpointer run_worker(gpointer data);
 static void do_mu(GtkWidget *widget, unsigned begin, size_t n);
 static void draw(GtkWidget *widget);
 static void doenergy(GtkWidget *widget);
+
+static void progress_start(GtkWidget *widget, unsigned ticks);
+static void progress_tick(GtkWidget *widget);
+static void progress_finish(GtkWidget *widget);
 
 static inline long double paint_inc(GtkWidget *widget)
 {
@@ -187,7 +192,11 @@ static void gfract_mandel_init(GFractMandel *fract)
 
 	priv->cx = priv->cy = 0.0;
 
-	priv->do_progress = true;
+	priv->progress = NULL;
+	priv->progress_stp = 0;
+	priv->progress_cur = 0;
+
+	priv->configured = false;
 
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
@@ -281,7 +290,7 @@ void gfract_redraw(GtkWidget *widget)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	if (priv->worker)
 		g_thread_join(priv->worker);
-	if (priv->do_progress)
+	if (priv->progress)
 		priv->worker = g_thread_create(run_worker, widget, TRUE, NULL);
 	else
 		run_worker(widget);
@@ -401,6 +410,9 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
 
+	if (priv->configured)
+		return TRUE;
+
 	if (priv->worker)
 		gfract_stop_wait(widget);
 	if (priv->draw)
@@ -419,6 +431,8 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	g_object_ref_sink(priv->draw);
 	g_object_ref_sink(priv->onscreen);
 
+	priv->configured = true;
+
 	gfract_compute(widget);
 
 	return TRUE;
@@ -433,10 +447,9 @@ static gpointer run_worker(gpointer data)
 
 	unsigned ticks = priv->width / 16 + priv->width / 128;
 
-	if (priv->do_progress) {
+	if (priv->progress) {
 		gdk_threads_enter();
-		priv->progress = gui_progress_start(priv->win, ticks,
-				gfract_stop, widget);
+		progress_start(widget, ticks);
 		gdk_threads_leave();
 	}
 
@@ -462,11 +475,10 @@ static gpointer run_worker(gpointer data)
 	priv->draw = aux;
 
 cleanup:
-	if (priv->do_progress) {
+	if (priv->progress) {
 		gdk_threads_enter();
-		gui_progress_end(priv->progress);
+		progress_finish(widget);
 		gdk_threads_leave();
-		priv->progress = NULL;
 	}
 
 	gdk_threads_enter();
@@ -515,11 +527,11 @@ static void draw(GtkWidget *widget)
 			gdk_draw_point(priv->draw, gc, i, j);
 			gdk_threads_leave();
 		}
-		if (priv->do_progress && (ticked++ & 127) == 0) {
+		if (priv->progress && (ticked++ & 127) == 0) {
 			if (priv->stop_worker)
 				return;
 			gdk_threads_enter();
-			gui_progress_tick(priv->progress);
+			progress_tick(widget);
 			gdk_threads_leave();
 		}
 	}
@@ -583,11 +595,11 @@ inc_and_cont:
 			y -= paint_inc(widget);
 		}
 		x += paint_inc(widget);
-		if (priv->do_progress && (ticked++ & 15) == 0) {
+		if (priv->progress && (ticked++ & 15) == 0) {
 			if (priv->stop_worker)
 				return;
 			gdk_threads_enter();
-			gui_progress_tick(priv->progress);
+			progress_tick(widget);
 			gdk_threads_leave();
 		}
 	}
@@ -885,14 +897,38 @@ void gfract_set_center(GtkWidget *widget, long double x, long double y)
 	priv->cy = y;
 }
 
-void gfract_set_do_progress(GtkWidget *widget, gboolean d)
+void gfract_set_progress(GtkWidget *widget, GtkWidget *progress)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	priv->do_progress = d == TRUE ? true : false;
+	priv->progress = progress;
 }
 
-gboolean gfract_get_do_progress(GtkWidget *widget)
+static void progress_start(GtkWidget *widget, unsigned ticks)
 {
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
-	return priv->do_progress ? TRUE : FALSE;
+	priv->progress_cur = 0;
+	priv->progress_stp = 1.0L / ticks;
+}
+
+static void progress_tick(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->progress_cur += priv->progress_stp;
+	if (priv->progress_cur > 1.0L)
+		return;
+	gchar *s = g_strdup_printf("Computing %u %%",
+			(unsigned)(priv->progress_cur * 100));
+	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(priv->progress), s);
+	g_free(s);
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(priv->progress),
+			priv->progress_cur);
+}
+
+static void progress_finish(GtkWidget *widget)
+{
+	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
+	priv->progress_cur = 0;
+	priv->progress_stp = 0;
+	gtk_progress_bar_set_text(GTK_PROGRESS_BAR(priv->progress), NULL);
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(priv->progress), 0.0L);
 }

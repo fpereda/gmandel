@@ -122,8 +122,8 @@ void gfract_pixel_to_point(GtkWidget *widget,
 		unsigned px, unsigned py,
 		long double *x, long double *y);
 
-void gfract_set_do_progress(GtkWidget *widget, gboolean d);
-gboolean gfract_get_do_progress(GtkWidget *widget);
+void gfract_set_progress(GtkWidget *widget, GtkWidget *progress);
+void gfract_set_progress_show_hide(GtkWidget *widget, gboolean s);
 
 G_END_DECLS
 

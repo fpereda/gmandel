@@ -37,7 +37,6 @@
 #include "xfuncs.h"
 #include "gui.h"
 #include "gui_menu.h"
-#include "gui_progress.h"
 #include "gui_status.h"
 #include "gui_callbacks.h"
 #include "gfract.h"
@@ -84,7 +83,22 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		gtk_window_set_title(GTK_WINDOW(window), title);
 		g_free(title);
 
-		gtk_container_add(GTK_CONTAINER(window), f);
+		GtkWidget *progbox = gtk_hbox_new(FALSE, 0);
+		GtkWidget *prog = gtk_progress_bar_new();
+		GtkWidget *stopb = gtk_button_new_from_stock(GTK_STOCK_STOP);
+		g_signal_connect_swapped(stopb, "clicked",
+				G_CALLBACK(gfract_stop), f);
+		gtk_box_pack_start_defaults(GTK_BOX(progbox), prog);
+		gtk_box_pack_start(GTK_BOX(progbox), stopb, FALSE, FALSE, 0);
+
+		GtkWidget *layout = gtk_vbox_new(FALSE, 2);
+		gtk_container_add(GTK_CONTAINER(layout), progbox);
+		gtk_container_add(GTK_CONTAINER(layout), f);
+
+		gtk_container_add(GTK_CONTAINER(window), layout);
+
+		gfract_set_progress(f, prog);
+
 		gtk_widget_show_all(window);
 	} else
 		return FALSE;
