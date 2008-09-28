@@ -98,7 +98,7 @@ gboolean handle_click(GtkWidget *widget, GdkEventButton *event)
 		GtkWidget *stopb = gtk_button_new_from_stock(GTK_STOCK_STOP);
 		g_signal_connect_swapped(stopb, "clicked",
 				G_CALLBACK(gfract_stop), f);
-		gtk_box_pack_start_defaults(GTK_BOX(progbox), prog);
+		gtk_container_add(GTK_CONTAINER(progbox), prog);
 		gtk_box_pack_start(GTK_BOX(progbox), stopb, FALSE, FALSE, 0);
 
 		GtkWidget *layout = gtk_vbox_new(FALSE, 2);
