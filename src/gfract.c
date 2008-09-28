@@ -83,7 +83,6 @@ struct _GFractMandelPrivate {
 	void (*progress_hook_finish)(gpointer);
 	gpointer progress_hook_start_data;
 	gpointer progress_hook_finish_data;
-	bool configured;
 	bool do_select;
 	bool do_orbits;
 	bool do_energy;
@@ -203,8 +202,6 @@ static void gfract_mandel_init(GFractMandel *fract)
 	priv->progress_hook_finish = NULL;
 	priv->progress_hook_start_data = NULL;
 	priv->progress_hook_finish_data = NULL;
-
-	priv->configured = false;
 
 	gtk_widget_add_events(GTK_WIDGET(fract), 0
 			| GDK_BUTTON_PRESS_MASK
@@ -418,9 +415,6 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(widget);
 	GFractMandel *fract = GFRACT_MANDEL(widget);
 
-	if (priv->configured)
-		return TRUE;
-
 	if (priv->worker)
 		gfract_stop_wait(widget);
 	if (priv->draw)
@@ -438,8 +432,6 @@ static gboolean configure_fract(GtkWidget *widget, GdkEventConfigure *event)
 
 	g_object_ref_sink(priv->draw);
 	g_object_ref_sink(priv->onscreen);
-
-	priv->configured = true;
 
 	gfract_compute(widget);
 
