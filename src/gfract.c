@@ -67,7 +67,6 @@ G_DEFINE_TYPE(GFractMandel, gfract_mandel, GTK_TYPE_DRAWING_AREA);
 typedef struct _GFractMandelPrivate GFractMandelPrivate;
 
 struct _GFractMandelPrivate {
-	GtkWidget *win;
 	GdkPixmap *draw;
 	GdkPixmap *onscreen;
 	struct observer_state paint_limits;
@@ -172,8 +171,6 @@ static void gfract_mandel_init(GFractMandel *fract)
 	priv->onscreen = NULL;
 	priv->draw = NULL;
 
-	priv->win = NULL;
-
 	priv->paint_limits.ulx = LIMITS_ULX_DEFAULT;
 	priv->paint_limits.uly = LIMITS_ULY_DEFAULT;
 	priv->paint_limits.lly = LIMITS_LLY_DEFAULT;
@@ -243,12 +240,11 @@ static void gfract_mandel_finalize(GObject *object)
 		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
 
-GtkWidget *gfract_new_mandel(GtkWidget *win, guint width, guint height)
+GtkWidget *gfract_new_mandel(guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
-	priv->win = win;
 	priv->type = GFRACT_MANDEL;
 
 	priv->width = width;
@@ -259,12 +255,11 @@ GtkWidget *gfract_new_mandel(GtkWidget *win, guint width, guint height)
 	return ret;
 }
 
-GtkWidget *gfract_new_julia(GtkWidget *win, guint width, guint height)
+GtkWidget *gfract_new_julia(guint width, guint height)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
-	priv->win = win;
 	priv->type = GFRACT_JULIA;
 
 	priv->width = width;

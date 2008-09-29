@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	gtk_window_set_title(GTK_WINDOW(window), "Julia set video");
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-	GtkWidget *f = gfract_new_julia(window, width, height);
+	GtkWidget *f = gfract_new_julia(width, height);
 	gfract_set_limits(f, ulx, uly, lly);
 	gfract_set_maxit(f, maxit);
 	gfract_set_ratios(f,
