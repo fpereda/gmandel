@@ -240,12 +240,12 @@ static void gfract_mandel_finalize(GObject *object)
 		G_OBJECT_CLASS(gfract_mandel_parent_class)->finalize(object);
 }
 
-GtkWidget *gfract_new_mandel(guint width, guint height)
+static GtkWidget *_new(guint width, guint height, enum gfract_type type)
 {
 	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
 	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
 
-	priv->type = GFRACT_MANDEL;
+	priv->type = type;
 
 	priv->width = width;
 	priv->height = height;
@@ -255,19 +255,14 @@ GtkWidget *gfract_new_mandel(guint width, guint height)
 	return ret;
 }
 
+GtkWidget *gfract_new_mandel(guint width, guint height)
+{
+	return _new(width, height, GFRACT_MANDEL);
+}
+
 GtkWidget *gfract_new_julia(guint width, guint height)
 {
-	GtkWidget *ret = g_object_new(GFRACT_TYPE_MANDEL, NULL);
-	GFractMandelPrivate *priv = GFRACT_MANDEL_GET_PRIVATE(ret);
-
-	priv->type = GFRACT_JULIA;
-
-	priv->width = width;
-	priv->height = height;
-
-	gtk_widget_set_size_request(ret, width, height);
-
-	return ret;
+	return _new(width, height, GFRACT_JULIA);
 }
 
 void gfract_compute(GtkWidget *widget)
