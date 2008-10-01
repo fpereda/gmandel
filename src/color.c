@@ -38,6 +38,8 @@ static char *color_names[] = {
 	[COLOR_THEME_FIRERED] = "firered",
 	[COLOR_THEME_GREENPARK] = "greenpark",
 	[COLOR_THEME_GREYSCALE] = "greyscale",
+	[COLOR_THEME_DEEPBLUE] = "deepblue",
+	[COLOR_THEME_VERYGREEN] = "verygreen",
 	[COLOR_THEME_LAST] = NULL,
 };
 
@@ -46,6 +48,8 @@ static const struct color_ratios color_ratios[] = {
 	[COLOR_THEME_FIRERED] = { .red = 1, .blue = 0.1, .green = 0.3 },
 	[COLOR_THEME_GREENPARK] = { .red = 0.1, .blue = 0.4, .green = 1 },
 	[COLOR_THEME_GREYSCALE] = { .red = 0.7, .blue = 0.7, .green = 0.7 },
+	[COLOR_THEME_DEEPBLUE] = { .red = 0.1, .blue = 1, .green = 0.3 },
+	[COLOR_THEME_VERYGREEN] = { .red = 0.01, .blue = 0.01, .green = 0.3 },
 };
 
 char **color_get_names(void)
