@@ -222,7 +222,6 @@ bool gui_state_load(struct gui_params *gui)
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 			NULL);
-	g_object_ref_sink(fc);
 	gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(fc), TRUE);
 
 	if (gtk_dialog_run(GTK_DIALOG(fc)) != GTK_RESPONSE_ACCEPT)
