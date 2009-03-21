@@ -12,6 +12,7 @@ configure
 src/gmandel
 src/gjulia
 src/gjulia-video
+src/gburningship
 stamp-h1
 *.swp
 config.h
@@ -21,3 +22,4 @@ tags
 callgrind*
 *.png
 *.gmandel
+.DS_Store

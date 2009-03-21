@@ -1,7 +1,7 @@
 /* vim: set sts=4 sw=4 noet : */
 
 /*
- * Copyright (c) 2007, 2008 Fernando J. Pereda <ferdy@ferdyx.org>
+ * Copyright (c) 2009 Fernando J. Pereda <ferdy@ferdyx.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 
 #include "mandelbrot.h"
 #include "julia.h"
+#include "burningship.h"
 #include "color_filter.h"
 #include "mupoint.h"
 #include "xfuncs.h"
@@ -56,6 +57,7 @@ struct observer_state {
 enum gfract_type {
 	GFRACT_MANDEL = 0,
 	GFRACT_JULIA,
+	GFRACT_BURNINGSHIP,
 };
 
 G_DEFINE_TYPE(GFractMandel, gfract_mandel, GTK_TYPE_DRAWING_AREA);
@@ -263,6 +265,11 @@ GtkWidget *gfract_new_mandel(guint width, guint height)
 GtkWidget *gfract_new_julia(guint width, guint height)
 {
 	return _new(width, height, GFRACT_JULIA);
+}
+
+GtkWidget *gfract_new_burningship(guint width, guint height)
+{
+	return _new(width, height, GFRACT_BURNINGSHIP);
 }
 
 void gfract_compute(GtkWidget *widget)
@@ -566,9 +573,14 @@ static void do_mu(GtkWidget *widget, unsigned begin, size_t n)
 				goto inc_and_cont;
 
 			long double modulus;
-			unsigned it = priv->type == GFRACT_MANDEL
-				? mandelbrot_it(priv->maxit, &x, &y, &modulus)
-				: julia_it(priv->maxit, &x, &y, &priv->cx, &priv->cy, &modulus);
+			unsigned it = 0;
+			if (priv->type == GFRACT_MANDEL)
+				it = mandelbrot_it(priv->maxit, &x, &y, &modulus);
+			else if (priv->type == GFRACT_JULIA)
+				it = julia_it(priv->maxit, &x, &y,
+						&priv->cx, &priv->cy, &modulus);
+			else if (priv->type == GFRACT_BURNINGSHIP)
+				it = burningship_it(priv->maxit, &x, &y, &modulus);
 
 			/* Renormalized formula for the escape radius.
 			 * Optimize away the case where it == 0
@@ -729,9 +741,13 @@ void gfract_draw_orbit(GtkWidget *widget, long double x, long double y)
 	};
 
 	unsigned n;
-	struct orbit_point *o = priv->type == GFRACT_MANDEL
-		? mandelbrot_orbit(priv->maxit, &x, &y, &n)
-		: julia_orbit(priv->maxit, &x, &y, &priv->cx, &priv->cy, &n);
+	struct orbit_point *o = NULL;
+	if (priv->type == GFRACT_MANDEL)
+		o = mandelbrot_orbit(priv->maxit, &x, &y, &n);
+	else if (priv->type == GFRACT_JULIA)
+		o = julia_orbit(priv->maxit, &x, &y, &priv->cx, &priv->cy, &n);
+	else if (priv->type == GFRACT_BURNINGSHIP)
+		o = burningship_orbit(priv->maxit, &x, &y, &n);
 
 	for (unsigned i = 0; i < n; i++) {
 		gint sx;

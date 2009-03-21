@@ -29,10 +29,11 @@ endif
 
 SUBDIRS = .
 
-bin_PROGRAMS = gmandel gjulia gjulia-video
+bin_PROGRAMS = gmandel gjulia gjulia-video gburningship
 noinst_LIBRARIES = libgfract.a
 
 libgfract_a_SOURCES = xfuncs.h gfract_engines.h \
+                      burningship.c burningship.h \
                       color_filter.c color_filter.h \
                       gfract.c gfract.h \
                       julia.c julia.h \
@@ -57,5 +58,9 @@ gjulia_LDADD = $(COMMON_LDADD)
 
 gjulia_video_SOURCES = gjulia-video.c color.c color.h
 gjulia_video_LDADD = $(COMMON_LDADD)
+
+gburningship_SOURCES = gburningship.c \
+                       color.c color.h
+gburningship_LDADD = $(COMMON_LDADD)
 
 # vim: set et:

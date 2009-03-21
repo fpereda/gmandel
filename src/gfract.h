@@ -68,6 +68,7 @@ struct _GFractMandelClass {
 
 GtkWidget *gfract_new_mandel(guint width, guint height);
 GtkWidget *gfract_new_julia(guint width, guint height);
+GtkWidget *gfract_new_burningship(guint width, guint height);
 
 void gfract_set_limits(GtkWidget *widget,
 		gdouble ulx, gdouble uly, gdouble lly);
