@@ -31,19 +31,25 @@ get() {
 	kill $KILL_PID
 }
 
+case $(uname -s) in
+	Darwin)
+		export PATH=/opt/local/bin:$PATH
+	;;
+esac
+
 run mkdir -p config
-run $(get libtoolize 1.5 ) --copy --force --automake
+run $(get libtoolize 2.2 ) --copy --force --automake
 rm -f config.cache
 
 case $(uname -s) in
 	Darwin)
-		run $(get aclocal 1.10 1.9 ) -I /opt/local/share/aclocal
+		run $(get aclocal 1.11 ) -I /opt/local/share/aclocal
 	;;
 	*)
-		run $(get aclocal 1.10 1.9 )
+		run $(get aclocal 1.11 )
 	;;
 esac
 
-run $(get autoheader 2.61 2.60 2.59 )
-run $(get autoconf 2.61 2.60 2.59 )
-run $(get automake 1.10 1.9 ) -a --copy --foreign
+run $(get autoheader 2.64 )
+run $(get autoconf 2.64 )
+run $(get automake 1.11 ) -a --copy --foreign

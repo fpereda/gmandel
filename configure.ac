@@ -1,6 +1,6 @@
 dnl vim: set sw=4 sts=4 ts=4 noet ft=config foldmethod=marker foldmarker={{{,}}} :
 dnl Basic setup
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_INIT([src/gmandel.c])
 AC_CONFIG_AUX_DIR(config)
 
@@ -15,7 +15,9 @@ AC_SUBST([VERSION_MINOR])
 AC_SUBST([VERSION_MICRO])
 AC_SUBST([VERSION_FULL])
 
-AM_INIT_AUTOMAKE(gmandel, [$VERSION_FULL])
+AM_INIT_AUTOMAKE(gmandel, [$VERSION_FULL], 1.11)
+AM_SILENT_RULES([yes])
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Version of the program])
 
 dnl Basic stuff
 AC_PROG_CC
