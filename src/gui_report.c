@@ -43,7 +43,7 @@ void gui_report_error(GtkWidget *window, const char *fmt, ...)
 				GTK_WINDOW(window),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
-				message);
+				"%s", message);
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 	g_free(message);
